@@ -1,0 +1,647 @@
+﻿{
+  "Routes": [
+    {
+      "DownstreamPathTemplate": "/api/auth/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "identity-service",
+          "Port": 5001
+        }
+      ],
+      "UpstreamPathTemplate": "/identity/{everything}",
+      "UpstreamHttpMethod": [
+        "GET"
+      ],
+      "SwaggerKey": "identity",
+      "Key": "identity-get"
+    },
+    {
+      "DownstreamPathTemplate": "/api/auth/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "identity-service",
+          "Port": 5001
+        }
+      ],
+      "UpstreamPathTemplate": "/identity/{everything}",
+      "UpstreamHttpMethod": [
+        "POST"
+      ],
+      "SwaggerKey": "identity",
+      "Key": "identity-post"
+    },
+    {
+      "DownstreamPathTemplate": "/api/auth/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "identity-service",
+          "Port": 5001
+        }
+      ],
+      "UpstreamPathTemplate": "/identity/{everything}",
+      "UpstreamHttpMethod": [
+        "PUT"
+      ],
+      "SwaggerKey": "identity",
+      "Key": "identity-put"
+    },
+    {
+      "DownstreamPathTemplate": "/api/auth/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "identity-service",
+          "Port": 5001
+        }
+      ],
+      "UpstreamPathTemplate": "/identity/{everything}",
+      "UpstreamHttpMethod": [
+        "DELETE"
+      ],
+      "SwaggerKey": "identity",
+      "Key": "identity-delete"
+    },
+    {
+      "DownstreamPathTemplate": "/api/flights/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "flight-service",
+          "Port": 5002
+        }
+      ],
+      "UpstreamPathTemplate": "/flights/{everything}",
+      "UpstreamHttpMethod": [
+        "GET"
+      ],
+      "SwaggerKey": "flights",
+      "Key": "flights-get"
+    },
+    {
+      "DownstreamPathTemplate": "/api/flights/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "flight-service",
+          "Port": 5002
+        }
+      ],
+      "UpstreamPathTemplate": "/flights/{everything}",
+      "UpstreamHttpMethod": [
+        "POST"
+      ],
+      "SwaggerKey": "flights",
+      "Key": "flights-post"
+    },
+    {
+      "DownstreamPathTemplate": "/api/flights/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "flight-service",
+          "Port": 5002
+        }
+      ],
+      "UpstreamPathTemplate": "/flights/{everything}",
+      "UpstreamHttpMethod": [
+        "PUT"
+      ],
+      "SwaggerKey": "flights",
+      "Key": "flights-put"
+    },
+    {
+      "DownstreamPathTemplate": "/api/flights/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "flight-service",
+          "Port": 5002
+        }
+      ],
+      "UpstreamPathTemplate": "/flights/{everything}",
+      "UpstreamHttpMethod": [
+        "DELETE"
+      ],
+      "SwaggerKey": "flights",
+      "Key": "flights-delete"
+    },
+    {
+      "DownstreamPathTemplate": "/api/bookings/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "booking-service",
+          "Port": 5003
+        }
+      ],
+      "UpstreamPathTemplate": "/bookings/{everything}",
+      "UpstreamHttpMethod": [
+        "GET"
+      ],
+      "SwaggerKey": "bookings",
+      "Key": "bookings-get"
+    },
+    {
+      "DownstreamPathTemplate": "/api/bookings/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "booking-service",
+          "Port": 5003
+        }
+      ],
+      "UpstreamPathTemplate": "/bookings/{everything}",
+      "UpstreamHttpMethod": [
+        "POST"
+      ],
+      "SwaggerKey": "bookings",
+      "Key": "bookings-post"
+    },
+    {
+      "DownstreamPathTemplate": "/api/bookings/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "booking-service",
+          "Port": 5003
+        }
+      ],
+      "UpstreamPathTemplate": "/bookings/{everything}",
+      "UpstreamHttpMethod": [
+        "PUT"
+      ],
+      "SwaggerKey": "bookings",
+      "Key": "bookings-put"
+    },
+    {
+      "DownstreamPathTemplate": "/api/bookings/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "booking-service",
+          "Port": 5003
+        }
+      ],
+      "UpstreamPathTemplate": "/bookings/{everything}",
+      "UpstreamHttpMethod": [
+        "DELETE"
+      ],
+      "SwaggerKey": "bookings",
+      "Key": "bookings-delete"
+    },
+    {
+      "DownstreamPathTemplate": "/api/payments/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "payment-service",
+          "Port": 5004
+        }
+      ],
+      "UpstreamPathTemplate": "/payments/{everything}",
+      "UpstreamHttpMethod": [
+        "GET"
+      ],
+      "SwaggerKey": "payments",
+      "Key": "payments-get"
+    },
+    {
+      "DownstreamPathTemplate": "/api/payments/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "payment-service",
+          "Port": 5004
+        }
+      ],
+      "UpstreamPathTemplate": "/payments/{everything}",
+      "UpstreamHttpMethod": [
+        "POST"
+      ],
+      "SwaggerKey": "payments",
+      "Key": "payments-post"
+    },
+    {
+      "DownstreamPathTemplate": "/api/payments/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "payment-service",
+          "Port": 5004
+        }
+      ],
+      "UpstreamPathTemplate": "/payments/{everything}",
+      "UpstreamHttpMethod": [
+        "PUT"
+      ],
+      "SwaggerKey": "payments",
+      "Key": "payments-put"
+    },
+    {
+      "DownstreamPathTemplate": "/api/payments/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "payment-service",
+          "Port": 5004
+        }
+      ],
+      "UpstreamPathTemplate": "/payments/{everything}",
+      "UpstreamHttpMethod": [
+        "DELETE"
+      ],
+      "SwaggerKey": "payments",
+      "Key": "payments-delete"
+    },
+    {
+      "DownstreamPathTemplate": "/api/checkins/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "checkin-service",
+          "Port": 5005
+        }
+      ],
+      "UpstreamPathTemplate": "/checkin/{everything}",
+      "UpstreamHttpMethod": [
+        "GET"
+      ],
+      "SwaggerKey": "checkins",
+      "Key": "checkins-get"
+    },
+    {
+      "DownstreamPathTemplate": "/api/checkins/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "checkin-service",
+          "Port": 5005
+        }
+      ],
+      "UpstreamPathTemplate": "/checkin/{everything}",
+      "UpstreamHttpMethod": [
+        "POST"
+      ],
+      "SwaggerKey": "checkins",
+      "Key": "checkins-post"
+    },
+    {
+      "DownstreamPathTemplate": "/api/checkins/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "checkin-service",
+          "Port": 5005
+        }
+      ],
+      "UpstreamPathTemplate": "/checkin/{everything}",
+      "UpstreamHttpMethod": [
+        "PUT"
+      ],
+      "SwaggerKey": "checkins",
+      "Key": "checkins-put"
+    },
+    {
+      "DownstreamPathTemplate": "/api/checkins/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "checkin-service",
+          "Port": 5005
+        }
+      ],
+      "UpstreamPathTemplate": "/checkin/{everything}",
+      "UpstreamHttpMethod": [
+        "DELETE"
+      ],
+      "SwaggerKey": "checkins",
+      "Key": "checkins-delete"
+    },
+    {
+      "DownstreamPathTemplate": "/api/baggages/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "baggage-service",
+          "Port": 5006
+        }
+      ],
+      "UpstreamPathTemplate": "/baggage/{everything}",
+      "UpstreamHttpMethod": [
+        "GET"
+      ],
+      "SwaggerKey": "baggages",
+      "Key": "baggages-get"
+    },
+    {
+      "DownstreamPathTemplate": "/api/baggages/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "baggage-service",
+          "Port": 5006
+        }
+      ],
+      "UpstreamPathTemplate": "/baggage/{everything}",
+      "UpstreamHttpMethod": [
+        "POST"
+      ],
+      "SwaggerKey": "baggages",
+      "Key": "baggages-post"
+    },
+    {
+      "DownstreamPathTemplate": "/api/baggages/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "baggage-service",
+          "Port": 5006
+        }
+      ],
+      "UpstreamPathTemplate": "/baggage/{everything}",
+      "UpstreamHttpMethod": [
+        "PUT"
+      ],
+      "SwaggerKey": "baggages",
+      "Key": "baggages-put"
+    },
+    {
+      "DownstreamPathTemplate": "/api/baggages/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "baggage-service",
+          "Port": 5006
+        }
+      ],
+      "UpstreamPathTemplate": "/baggage/{everything}",
+      "UpstreamHttpMethod": [
+        "DELETE"
+      ],
+      "SwaggerKey": "baggages",
+      "Key": "baggages-delete"
+    },
+    {
+      "DownstreamPathTemplate": "/api/rewards/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "reward-service",
+          "Port": 5007
+        }
+      ],
+      "UpstreamPathTemplate": "/reward/{everything}",
+      "UpstreamHttpMethod": [
+        "GET"
+      ],
+      "SwaggerKey": "rewards",
+      "Key": "rewards-get"
+    },
+    {
+      "DownstreamPathTemplate": "/api/rewards/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "reward-service",
+          "Port": 5007
+        }
+      ],
+      "UpstreamPathTemplate": "/reward/{everything}",
+      "UpstreamHttpMethod": [
+        "POST"
+      ],
+      "SwaggerKey": "rewards",
+      "Key": "rewards-post"
+    },
+    {
+      "DownstreamPathTemplate": "/api/rewards/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "reward-service",
+          "Port": 5007
+        }
+      ],
+      "UpstreamPathTemplate": "/reward/{everything}",
+      "UpstreamHttpMethod": [
+        "PUT"
+      ],
+      "SwaggerKey": "rewards",
+      "Key": "rewards-put"
+    },
+    {
+      "DownstreamPathTemplate": "/api/rewards/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "reward-service",
+          "Port": 5007
+        }
+      ],
+      "UpstreamPathTemplate": "/reward/{everything}",
+      "UpstreamHttpMethod": [
+        "DELETE"
+      ],
+      "SwaggerKey": "rewards",
+      "Key": "rewards-delete"
+    },
+    {
+      "DownstreamPathTemplate": "/api/agents/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "agent-service",
+          "Port": 5008
+        }
+      ],
+      "UpstreamPathTemplate": "/agent/{everything}",
+      "UpstreamHttpMethod": [
+        "GET"
+      ],
+      "SwaggerKey": "agents",
+      "Key": "agents-get"
+    },
+    {
+      "DownstreamPathTemplate": "/api/agents/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "agent-service",
+          "Port": 5008
+        }
+      ],
+      "UpstreamPathTemplate": "/agent/{everything}",
+      "UpstreamHttpMethod": [
+        "POST"
+      ],
+      "SwaggerKey": "agents",
+      "Key": "agents-post"
+    },
+    {
+      "DownstreamPathTemplate": "/api/agents/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "agent-service",
+          "Port": 5008
+        }
+      ],
+      "UpstreamPathTemplate": "/agent/{everything}",
+      "UpstreamHttpMethod": [
+        "PUT"
+      ],
+      "SwaggerKey": "agents",
+      "Key": "agents-put"
+    },
+    {
+      "DownstreamPathTemplate": "/api/agents/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "agent-service",
+          "Port": 5008
+        }
+      ],
+      "UpstreamPathTemplate": "/agent/{everything}",
+      "UpstreamHttpMethod": [
+        "DELETE"
+      ],
+      "SwaggerKey": "agents",
+      "Key": "agents-delete"
+    },
+    {
+      "DownstreamPathTemplate": "/api/notifications/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "notification-service",
+          "Port": 5009
+        }
+      ],
+      "UpstreamPathTemplate": "/notification/{everything}",
+      "UpstreamHttpMethod": [
+        "GET"
+      ],
+      "SwaggerKey": "notifications",
+      "Key": "notifications-get"
+    },
+    {
+      "DownstreamPathTemplate": "/api/notifications/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "notification-service",
+          "Port": 5009
+        }
+      ],
+      "UpstreamPathTemplate": "/notification/{everything}",
+      "UpstreamHttpMethod": [
+        "POST"
+      ],
+      "SwaggerKey": "notifications",
+      "Key": "notifications-post"
+    },
+    {
+      "DownstreamPathTemplate": "/api/notifications/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "notification-service",
+          "Port": 5009
+        }
+      ],
+      "UpstreamPathTemplate": "/notification/{everything}",
+      "UpstreamHttpMethod": [
+        "PUT"
+      ],
+      "SwaggerKey": "notifications",
+      "Key": "notifications-put"
+    },
+    {
+      "DownstreamPathTemplate": "/api/notifications/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "notification-service",
+          "Port": 5009
+        }
+      ],
+      "UpstreamPathTemplate": "/notification/{everything}",
+      "UpstreamHttpMethod": [
+        "DELETE"
+      ],
+      "SwaggerKey": "notifications",
+      "Key": "notifications-delete"
+    },
+    {
+      "DownstreamPathTemplate": "/api/admin/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "admin-service",
+          "Port": 5010
+        }
+      ],
+      "UpstreamPathTemplate": "/admin/{everything}",
+      "UpstreamHttpMethod": [
+        "GET"
+      ],
+      "SwaggerKey": "admin",
+      "Key": "admin-get"
+    },
+    {
+      "DownstreamPathTemplate": "/api/admin/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "admin-service",
+          "Port": 5010
+        }
+      ],
+      "UpstreamPathTemplate": "/admin/{everything}",
+      "UpstreamHttpMethod": [
+        "POST"
+      ],
+      "SwaggerKey": "admin",
+      "Key": "admin-post"
+    },
+    {
+      "DownstreamPathTemplate": "/api/admin/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "admin-service",
+          "Port": 5010
+        }
+      ],
+      "UpstreamPathTemplate": "/admin/{everything}",
+      "UpstreamHttpMethod": [
+        "PUT"
+      ],
+      "SwaggerKey": "admin",
+      "Key": "admin-put"
+    },
+    {
+      "DownstreamPathTemplate": "/api/admin/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "admin-service",
+          "Port": 5010
+        }
+      ],
+      "UpstreamPathTemplate": "/admin/{everything}",
+      "UpstreamHttpMethod": [
+        "DELETE"
+      ],
+      "SwaggerKey": "admin",
+      "Key": "admin-delete"
+    }
+  ],
+  "GlobalConfiguration": {
+    "BaseUrl": "http://api-gateway:5000"
+  }
+}

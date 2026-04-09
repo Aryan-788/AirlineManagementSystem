@@ -1,0 +1,178 @@
+<app-top-navbar></app-top-navbar>
+<app-side-navbar subtitle="Ground Ops" [navItems]="sideNavItems"></app-side-navbar>
+
+<main class="gs-main">
+  <!-- Header with Status -->
+  <header class="gs-header">
+    <div class="gs-header-left">
+      <span class="gs-branding font-headline">SkyLedger</span>
+      <div class="gs-divider"></div>
+      <div class="gs-status">
+        <div class="gs-pulse"></div>
+        <span>RABBITMQ: CONNECTED</span>
+      </div>
+    </div>
+    <div class="gs-header-right">
+      <div class="scan-input">
+        <span class="material-symbols-outlined">barcode_scanner</span>
+        <input type="text" placeholder="Scan Tag or Enter PNR..." [ngModel]="trackingNumber()" (ngModelChange)="trackingNumber.set($event)" (keydown.enter)="trackBaggage()" />
+      </div>
+    </div>
+  </header>
+
+  <!-- Stats Grid -->
+  <div class="stats-grid">
+    <div class="stat-card stat-primary">
+      <p class="stat-label">TOTAL BAGS</p>
+      <p class="stat-value font-headline">{{ baggageSummary()?.totalBags || 0 }}</p>
+      <div class="stat-footer"><span class="stat-green">All recorded</span></div>
+    </div>
+    <div class="stat-card stat-secondary">
+      <p class="stat-label">DELIVERED</p>
+      <p class="stat-value font-headline">{{ baggageSummary()?.deliveredCount || 0 }}</p>
+      <div class="stat-bar-track"><div class="stat-bar" style="width:65%;background:var(--secondary)"></div></div>
+    </div>
+    <div class="stat-card stat-tertiary">
+      <p class="stat-label">IN TRANSIT / CHECKED</p>
+      <p class="stat-value font-headline">{{ baggageSummary()?.inTransitCount || 0 }} / {{ baggageSummary()?.checkedCount || 0 }}</p>
+      <div class="stat-footer"><span class="stat-red">Pending arrival</span></div>
+    </div>
+    <div class="stat-card stat-neutral">
+      <p class="stat-label">TOTAL CHECK-INS</p>
+      <p class="stat-value font-headline">{{ checkInSummary()?.totalCheckIns || 0 }}</p>
+      <div class="stat-footer">
+        <span class="material-symbols-outlined stat-check">check_circle</span>
+        <span class="stat-green">Today: {{ checkInSummary()?.todayCheckIns || 0 }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Baggage Table -->
+  <section class="bag-table-section">
+    <div class="bt-header">
+      <div>
+        <h2 class="font-headline bt-title">Real-time Baggage Log</h2>
+        <p class="bt-sub">Live feed from Ground-To-Gate event stream</p>
+      </div>
+      <div class="bt-actions">
+        <button class="bt-filter"><span class="material-symbols-outlined">filter_list</span> Filter</button>
+        <button class="bt-add" (click)="openAddModal()"><span class="material-symbols-outlined">add</span> Check-in New Bag</button>
+      </div>
+    </div>
+    <div class="bt-wrap">
+      <table>
+        <thead>
+          <tr><th>PNR / TAG ID</th><th>PASSENGER NAME</th><th>FLIGHT</th><th>WEIGHT</th><th>CURRENT STATUS</th><th class="text-right">QUICK ACTIONS</th></tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let b of baggages()" class="bag-row">
+            <td>
+              <div><span class="tag-id">{{ b.trackingNumber }}</span><span class="tag-sub">B-{{ b.id }}-{{ b.bookingId }}</span></div>
+            </td>
+            <td class="pax-name">{{ b.passengerName || 'N/A' }}</td>
+            <td>
+              <div class="flight-inline"><span class="material-symbols-outlined flight-sm">flight</span><span class="flight-num">{{ b.flightNumber || 'N/A' }}</span></div>
+            </td>
+            <td>{{ b.weight }} kg</td>
+            <td><span class="bag-status" [ngClass]="getStatusClass(b.status)"><span class="dot-pulse" *ngIf="b.status === 'Loading'"></span>{{ b.status }}</span></td>
+            <td class="text-right">
+              <div class="quick-actions" *ngIf="!b.isDelivered">
+                <select class="status-select" [ngModel]="b.status" (ngModelChange)="updateStatus(b.id, $event)">
+                  <option *ngFor="let opt of statusOptions" [value]="opt">{{ opt }}</option>
+                </select>
+                <button class="qa-btn green" (click)="markDelivered(b.id)" title="Express Delivery"><span class="material-symbols-outlined">done_all</span></button>
+              </div>
+              <span class="delivered-badge" *ngIf="b.isDelivered">✓ Dispatched</span>
+            </td>
+          </tr>
+          <tr *ngIf="baggages().length === 0 && !loading()">
+            <td colspan="6" class="empty-cell">No baggage tracked yet. Use the scanner or enter a tracking number above.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Bottom Grid -->
+  <div class="bottom-row">
+    <!-- Event Log -->
+    <div class="event-log-card">
+      <h3 class="font-headline el-title"><span class="material-symbols-outlined">terminal</span> System Event Log</h3>
+      <div class="el-list">
+        <div class="el-item" *ngFor="let e of eventLog">
+          <div class="el-bar" [style.background]="e.color"></div>
+          <div class="el-body">
+            <p class="el-event">{{ e.event }}</p>
+            <p class="el-detail">{{ e.detail }}</p>
+          </div>
+          <span class="el-time">{{ e.time }}</span>
+        </div>
+      </div>
+      <button class="el-more">View Full History</button>
+    </div>
+  </div>
+</main>
+
+<!-- FAB -->
+<div class="gs-fab">
+  <button class="fab-btn" (click)="openAddModal()">
+    <span class="material-symbols-outlined">forklift</span>
+    <span class="fab-label">NEW BAGGAGE UNIT</span>
+  </button>
+</div>
+
+<!-- Add Baggage Modal -->
+<div class="gs-modal-overlay" *ngIf="showAddModal()">
+  <div class="gs-modal">
+    <div class="gsm-header">
+      <h3 class="font-headline">Baggage Unit Registration</h3>
+      <button class="gsm-close" (click)="closeAddModal()"><span class="material-symbols-outlined">close</span></button>
+    </div>
+    
+    <div class="gsm-body">
+      <div class="gs-alert error" *ngIf="formError()">{{ formError() }}</div>
+      <div class="gs-alert success" *ngIf="formSuccess()">{{ formSuccess() }}</div>
+
+      <div class="gs-form-group">
+        <label>BOOKING ID OR PNR REFERENCE</label>
+        <div class="gs-input-with-action">
+          <input type="text" placeholder="Enter ID or PNR (e.g. 053X0C)" [ngModel]="bookingSearchTerm()" (ngModelChange)="bookingSearchTerm.set($event)" />
+          <button class="gs-inline-btn" (click)="fetchBookingDetails()" [disabled]="isAutoFilling()">
+            <span class="material-symbols-outlined" *ngIf="!isAutoFilling()">auto_fix</span>
+            <span class="loader-sm" *ngIf="isAutoFilling()"></span>
+            Auto-Fill
+          </button>
+        </div>
+      </div>
+
+      <div class="gs-form-row">
+        <div class="gs-form-group">
+          <label>PASSENGER NAME</label>
+          <input type="text" placeholder="Auto-filled name" [ngModel]="newPassengerName()" (ngModelChange)="newPassengerName.set($event)" />
+        </div>
+        <div class="gs-form-group">
+          <label>FLIGHT NUMBER</label>
+          <input type="text" placeholder="Auto-filled NO." [ngModel]="newFlightNumber()" (ngModelChange)="newFlightNumber.set($event)" />
+        </div>
+      </div>
+
+      <div class="gs-form-group">
+        <label>UNIT WEIGHT (KG) - MAX 23KG</label>
+        <div class="weight-input-group">
+          <input type="number" placeholder="0.0" [ngModel]="newWeight()" (ngModelChange)="newWeight.set($event)" />
+          <span>KG</span>
+        </div>
+        <div class="weight-limit-bar">
+          <div class="wlb-fill" [style.width.%]="(newWeight() || 0) / 23 * 100" [class.over]="(newWeight() || 0) > 23"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="gsm-footer">
+      <button class="gsm-cancel" (click)="closeAddModal()">Abort</button>
+      <button class="gsm-submit" (click)="addBaggage()" [disabled]="loading()">
+        {{ loading() ? 'Encrypting...' : 'Register Unit' }}
+      </button>
+    </div>
+  </div>
+</div>

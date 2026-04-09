@@ -1,0 +1,145 @@
+<app-top-navbar></app-top-navbar>
+<app-side-navbar subtitle="Admin Console" [navItems]="sideNavItems"></app-side-navbar>
+
+<main class="admin-main">
+  <header class="admin-header">
+    <div>
+      <h1 class="font-headline admin-title">Fleet Control Dashboard</h1>
+      <p class="admin-sub">Global overview of airline operations & performance metrics.</p>
+    </div>
+    <div class="header-actions">
+      <div class="date-badge">
+        <span class="material-symbols-outlined">calendar_today</span>
+        <span>{{ today() }}</span>
+      </div>
+      <button class="export-btn" routerLink="/admin/flights">
+        <span class="material-symbols-outlined">flight_takeoff</span> Manage Flights
+      </button>
+    </div>
+  </header>
+
+  <!-- KPI Cards -->
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-top">
+        <div class="kpi-icon bg-primary"><span class="material-symbols-outlined">confirmation_number</span></div>
+        <span class="kpi-badge green">+12.5%</span>
+      </div>
+      <div class="kpi-body">
+        <p class="kpi-label">TOTAL BOOKINGS</p>
+        <h3 class="kpi-value font-headline">{{ stats().totalBookings | number }}</h3>
+      </div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-top">
+        <div class="kpi-icon bg-secondary"><span class="material-symbols-outlined">payments</span></div>
+        <span class="kpi-badge green">+8.2%</span>
+      </div>
+      <div class="kpi-body">
+        <p class="kpi-label">REVENUE</p>
+        <h3 class="kpi-value font-headline">{{ stats().totalRevenue | currency:'INR':'symbol' }}</h3>
+      </div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-top">
+        <div class="kpi-icon bg-tertiary"><span class="material-symbols-outlined">flight</span></div>
+        <span class="kpi-badge amber">On Schedule</span>
+      </div>
+      <div class="kpi-body">
+        <p class="kpi-label">ACTIVE FLIGHTS</p>
+        <h3 class="kpi-value font-headline">{{ stats().activeFlights }}</h3>
+      </div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-top">
+        <div class="kpi-icon bg-outline"><span class="material-symbols-outlined">group</span></div>
+        <span class="kpi-badge blue">Active</span>
+      </div>
+      <div class="kpi-body">
+        <p class="kpi-label">TOTAL USERS</p>
+        <h3 class="kpi-value font-headline">{{ stats().totalUsers | number }}</h3>
+      </div>
+    </div>
+  </div>
+
+  <!-- Charts Row -->
+  <div class="charts-row">
+    <!-- Revenue Trend -->
+    <div class="chart-card wide">
+      <div class="chart-header">
+        <div>
+          <h4 class="font-headline chart-title">Revenue Trends</h4>
+          <p class="chart-sub">Monthly overview of generated gross revenue</p>
+        </div>
+        <div class="chart-tabs">
+          <button class="ct-inactive">7D</button>
+          <button class="ct-active">30D</button>
+        </div>
+      </div>
+      <div class="chart-body">
+        <svg class="revenue-chart" viewBox="0 0 1000 100" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="cg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#000666" stop-opacity="0.2"/><stop offset="100%" stop-color="#000666" stop-opacity="0"/></linearGradient>
+          </defs>
+          <path d="M0,80 Q100,20 200,50 T400,30 T600,60 T800,40 T1000,10 V100 H0 Z" fill="url(#cg)"/>
+          <path d="M0,80 Q100,20 200,50 T400,30 T600,60 T800,40 T1000,10" fill="none" stroke="#000666" stroke-width="3"/>
+        </svg>
+        <div class="chart-labels"><span>Wk 1</span><span>Wk 2</span><span>Wk 3</span><span>Wk 4</span></div>
+      </div>
+    </div>
+    <!-- Ticket Distribution -->
+    <div class="chart-card">
+      <h4 class="font-headline chart-title">Ticket Distribution</h4>
+      <p class="chart-sub">By passenger class</p>
+      <div class="donut-wrapper">
+        <svg viewBox="0 0 36 36" class="donut-chart">
+          <circle cx="18" cy="18" r="16" fill="none" stroke="#f5f2fb" stroke-width="4"/>
+          <circle cx="18" cy="18" r="16" fill="none" stroke="#000666" stroke-width="4" [attr.stroke-dasharray]="ticketDist().economyPct + ', 100'"/>
+          <circle cx="18" cy="18" r="16" fill="none" stroke="#00639a" stroke-width="4" [attr.stroke-dasharray]="ticketDist().businessPct + ', 100'" [attr.stroke-dashoffset]="'-' + ticketDist().economyPct"/>
+          <circle cx="18" cy="18" r="16" fill="none" stroke="#ffb59d" stroke-width="4" [attr.stroke-dasharray]="ticketDist().firstPct + ', 100'" [attr.stroke-dashoffset]="'-' + (ticketDist().economyPct + ticketDist().businessPct)"/>
+        </svg>
+        <div class="donut-center"><span class="font-headline">{{ stats().activeFlights ? 85 : 0 }}%</span><span>Capacity</span></div>
+      </div>
+      <div class="donut-legend">
+        <div class="dl-item"><div class="dl-dot" style="background:#000666"></div><span>Economy</span><span class="dl-pct">{{ ticketDist().economyPct }}%</span></div>
+        <div class="dl-item"><div class="dl-dot" style="background:#00639a"></div><span>Business</span><span class="dl-pct">{{ ticketDist().businessPct }}%</span></div>
+        <div class="dl-item"><div class="dl-dot" style="background:#ffb59d"></div><span>First Class</span><span class="dl-pct">{{ ticketDist().firstPct }}%</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Flights Table -->
+  <section class="admin-table-section">
+    <div class="admin-table-header">
+      <div>
+        <h4 class="font-headline chart-title">Active Fleet</h4>
+        <p class="chart-sub">All flights in the system</p>
+      </div>
+      <a routerLink="/admin/flights" class="view-all-link">View All Records</a>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>FLIGHT</th><th>ROUTE</th><th>DEPARTURE</th><th>AIRCRAFT</th><th>SEATS LEFT</th><th>STATUS</th></tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let f of flights().slice(0,5)">
+            <td><div class="flight-cell"><span class="fc-id">{{ f.flightNumber }}</span></div></td>
+            <td class="route-cell">{{ f.source }} → {{ f.destination }}</td>
+            <td class="text-muted">{{ f.departureTime | date:'medium' }}</td>
+            <td>{{ f.aircraft }}</td>
+            <td><span class="seats-badge">{{ f.availableSeats }}</span></td>
+            <td><span class="status-tag" [ngClass]="getStatusClass(f.status)">{{ f.status }}</span></td>
+          </tr>
+          <tr *ngIf="flights().length === 0"><td colspan="6" class="empty">No flights found</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<!-- FAB -->
+<button class="fab" routerLink="/admin/flights">
+  <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1">add</span>
+  <span>New Flight</span>
+</button>

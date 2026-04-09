@@ -1,0 +1,137 @@
+<app-top-navbar></app-top-navbar>
+<main class="booking-main" *ngIf="flight()">
+  <!-- Header -->
+  <header class="booking-header">
+    <h1 class="font-headline bk-title">Book Your Journey</h1>
+    <p class="bk-sub">Configure your seat, baggage, and finalize details for Flight {{ flight()!.flightNumber }}</p>
+    <!-- Progress Steps -->
+    <div class="progress-steps">
+      <div class="step active"><span class="step-num">1</span><span>Seat Selection</span></div>
+      <div class="step-line"></div>
+      <div class="step" [class.active]="step() >= 2"><span class="step-num">2</span><span>Details & Extras</span></div>
+      <div class="step-line"></div>
+      <div class="step" [class.active]="step() >= 3"><span class="step-num">3</span><span>Payment</span></div>
+    </div>
+  </header>
+
+  <div class="booking-grid">
+    <!-- Left: Seat Map -->
+    <section class="seat-section">
+      <div class="seat-panel">
+        <div class="seat-panel-header">
+          <div>
+            <h2 class="font-headline sp-title">Aircraft Seat Map</h2>
+            <span class="sp-aircraft">{{ flight()!.aircraft }}</span>
+          </div>
+          <div class="seat-legend">
+            <div class="legend-item"><div class="legend-dot available"></div> Available</div>
+            <div class="legend-item"><div class="legend-dot selected"></div> Selected</div>
+            <div class="legend-item"><div class="legend-dot occupied"></div> Occupied</div>
+          </div>
+        </div>
+        <!-- Seat Grid -->
+        <div class="seat-container">
+          <!-- First Class -->
+          <div class="seat-class-block" *ngIf="firstSeats.length">
+            <div class="class-label">First Class</div>
+            <div class="seat-row-grid first">
+              <button *ngFor="let s of firstSeats" class="seat-btn" [class.seat-selected]="selectedSeats().includes(s)" [class.seat-occupied]="occupiedSeats().includes(s)" (click)="selectSeat(s, 'First')">{{ s }}</button>
+            </div>
+          </div>
+          <!-- Business -->
+          <div class="seat-class-block" *ngIf="businessSeats.length">
+            <div class="class-label">Business Class</div>
+            <div class="seat-row-grid biz">
+              <button *ngFor="let s of businessSeats" class="seat-btn" [class.seat-selected]="selectedSeats().includes(s)" [class.seat-occupied]="occupiedSeats().includes(s)" (click)="selectSeat(s, 'Business')">{{ s }}</button>
+            </div>
+          </div>
+          <!-- Economy -->
+          <div class="seat-class-block" *ngIf="economySeats.length">
+            <div class="class-label">Economy</div>
+            <div class="seat-row-grid eco">
+              <button *ngFor="let s of economySeats" class="seat-btn sm" [class.seat-selected]="selectedSeats().includes(s)" [class.seat-occupied]="occupiedSeats().includes(s)" (click)="selectSeat(s, 'Economy')">{{ s }}</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Right: Form & Summary -->
+    <aside class="booking-aside">
+      <!-- Passenger Form -->
+      <div class="form-panel">
+        <h3 class="font-headline panel-title"><span class="material-symbols-outlined">person</span> Passenger Details</h3>
+        <form class="pax-form">
+          <div *ngFor="let pax of passengers(); let i = index" class="pax-group">
+            <h4 class="pax-title" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+              Passenger {{ i + 1 }}
+              <button *ngIf="passengers().length > 1" (click)="removePassenger(i)" type="button" class="remove-btn" style="color: #ff4d4f; background: none; border: none; cursor: pointer;">Remove</button>
+            </h4>
+            <div class="form-group">
+              <label>FULL NAME</label>
+              <input type="text" [(ngModel)]="pax.name" [name]="'name'+i" required />
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>AGE</label>
+                <input type="number" [(ngModel)]="pax.age" [name]="'age'+i" min="1" max="120" required />
+              </div>
+              <div class="form-group">
+                <label>GENDER</label>
+                <select [(ngModel)]="pax.gender" [name]="'gender'+i" required>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>AADHAR NUMBER (12 digits)</label>
+              <input type="text" [(ngModel)]="pax.aadharCardNo" [name]="'aadhar'+i" maxlength="12" pattern="\d{12}" required />
+            </div>
+            <hr *ngIf="i < passengers().length - 1" class="pax-divider" style="margin: 1.5rem 0; border: 0; height: 1px; background: #e2e8f0;"/>
+          </div>
+          <button type="button" class="add-pax-btn" (click)="addPassenger()" style="margin-top: 1rem; width: 100%; padding: 0.8rem; background-color: #f1f5f9; border: 1px dashed #cbd5e1; border-radius: 8px; color: #475569; font-weight: 500; cursor: pointer; transition: all 0.2s;">+ Add Another Passenger</button>
+        </form>
+      </div>
+
+      <!-- Baggage Options -->
+      <div class="form-panel">
+        <h3 class="font-headline panel-title"><span class="material-symbols-outlined">luggage</span> Baggage Options</h3>
+        <div class="baggage-options">
+          <div class="baggage-item active">
+            <div class="baggage-info"><span class="material-symbols-outlined">backpack</span><div><p class="bag-name">Standard Cabin</p><p class="bag-desc">Up to 7kg • Included</p></div></div>
+            <span class="material-symbols-outlined check">check_circle</span>
+          </div>
+          <div class="baggage-item" [class.active]="baggageWeight() > 7">
+            <div class="baggage-info"><span class="material-symbols-outlined">luggage</span><div><p class="bag-name">Checked Allowance</p><p class="bag-desc">Up to 23kg • +$45.00</p></div></div>
+            <div class="bag-counter">
+              <button class="counter-btn" (click)="baggageWeight.set(0)">-</button>
+              <span>{{ baggageWeight() > 7 ? 1 : 0 }}</span>
+              <button class="counter-btn plus" (click)="baggageWeight.set(23)">+</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Fare Summary -->
+      <div class="fare-panel">
+        <h3 class="font-headline fare-title"><span class="material-symbols-outlined">receipt_long</span> Fare Summary</h3>
+        <div class="fare-lines">
+          <div class="fare-line"><span>Base Fare ({{ seatClass() }}) x{{ passengers().length }}</span><span>{{ getSeatsTotal() | currency:'INR':'symbol' }}</span></div>
+          <div class="fare-line" *ngIf="selectedSeats().length > 0"><span>Seats ({{ selectedSeats().join(', ') }})</span><span>Included</span></div>
+          <div class="fare-line" *ngIf="baggageWeight() > 7"><span>Baggage (1x23kg)</span><span>{{ 45.00 | currency:'INR':'symbol' }}</span></div>
+          <div class="fare-line"><span>Taxes & Fees x{{ passengers().length }}</span><span>{{ (84.50 * passengers().length) | currency:'INR':'symbol' }}</span></div>
+          <div class="fare-divider"></div>
+          <div class="fare-total"><span class="font-headline">Total Price</span><span class="font-headline total-amount">{{ getTotalPrice() | currency:'INR':'symbol' }}</span></div>
+        </div>
+        <div class="fare-actions">
+          <button class="confirm-btn" (click)="confirmBooking()" [disabled]="loading() || selectedSeats().length !== passengers().length">
+            {{ loading() ? 'Processing...' : 'Confirm Booking' }}
+          </button>
+          <button class="cancel-btn" routerLink="/passenger/search">Cancel</button>
+        </div>
+      </div>
+    </aside>
+  </div>
+</main>

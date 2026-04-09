@@ -1,0 +1,39 @@
+<Solution>
+
+  <Folder Name="/Solution Items/">
+    <File Path=".gitignore" />
+    <File Path="docker-compose.yml" />
+    <File Path="README.md" />
+    <File Path="QUICKSTART.md" />
+    <File Path="API_DOCUMENTATION.md" />
+    <File Path="BUILD_INSTRUCTIONS.md" />
+    <File Path="COMPLETION_SUMMARY.md" />
+    <File Path="FILE_TREE.md" />
+    <File Path="PROJECT_COMPLETION.md" />
+    <File Path="INDEX.md" />
+    <File Path="VISUAL_STUDIO_SETUP.md" />
+    <File Path="RUNNING_MULTIPLE_SERVICES.md" />
+    <File Path="SOLUTION_FILE_GUIDE.md" />
+    <File Path="GET_STARTED.md" />
+  </Folder>
+
+  <Project Path="Shared/Shared.csproj" />
+
+  <Project Path="Services/IdentityService/IdentityService.csproj" />
+  <Project Path="Services/FlightService/FlightService.csproj" />
+  <Project Path="Services/BookingService/BookingService.csproj" />
+  <Project Path="Services/PaymentService/PaymentService.csproj" />
+  <Project Path="Services/CheckInService/CheckInService.csproj" />
+  <Project Path="Services/BaggageService/BaggageService.csproj" />
+  <Project Path="Services/RewardService/RewardService.csproj" />
+  <Project Path="Services/AgentService/AgentService.csproj" />
+  <Project Path="Services/NotificationService/NotificationService.csproj" />
+  <Project Path="Services/AdminService/AdminService.csproj" />
+
+  <Project Path="ApiGateway/ApiGateway.csproj" />
+
+  <Project Path="Services/FlightService.Tests/FlightService.Tests.csproj" />
+  <Project Path="Services/BookingService.Tests/BookingService.Tests.csproj" />
+  <Project Path="Services/PaymentService.Tests/PaymentService.Tests.csproj" />
+
+</Solution>

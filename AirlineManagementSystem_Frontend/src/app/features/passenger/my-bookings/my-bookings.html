@@ -1,0 +1,309 @@
+<app-top-navbar></app-top-navbar>
+<app-side-navbar subtitle="Passenger Hub" [navItems]="sideNavItems()"></app-side-navbar>
+
+<main class="bk-main">
+  <!-- Hero Header -->
+  <header class="bk-hero">
+    <div class="bk-hero-text">
+      <span class="bk-eyebrow">Passenger Journey</span>
+      <h1 class="font-headline bk-title">My Bookings</h1>
+      <p class="bk-subtitle">Manage your itineraries, view history, and handle check-ins from one place.</p>
+    </div>
+    <div class="bk-hero-actions">
+      <a [routerLink]="['/', authService.userRole() === 'Dealer' ? 'dealer' : 'passenger', 'search']" class="bk-btn-primary">
+        <span class="material-symbols-outlined">add</span> Book New Flight
+      </a>
+    </div>
+  </header>
+
+  <!-- Stats Bar -->
+  <div class="bk-stats">
+    <div class="bk-stat-card">
+      <span class="bk-stat-label">Total Bookings</span>
+      <div class="bk-stat-value">
+        <span class="bk-stat-num">{{ bookings().length }}</span>
+      </div>
+    </div>
+    <div class="bk-stat-card">
+      <span class="bk-stat-label">Confirmed</span>
+      <div class="bk-stat-value">
+        <span class="bk-stat-num green">{{ upcomingCount() }}</span>
+      </div>
+    </div>
+    <div class="bk-stat-card">
+      <span class="bk-stat-label">Pending</span>
+      <div class="bk-stat-value">
+        <span class="bk-stat-num amber">{{ pendingCount() }}</span>
+      </div>
+    </div>
+    <div class="bk-stat-card bk-stat-accent">
+      <span class="bk-stat-label-w">Cancelled</span>
+      <div class="bk-stat-value">
+        <span class="bk-stat-num-w">{{ cancelledCount() }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Table Section -->
+  <section class="bk-table-section">
+    <div class="bk-table-header">
+      <h2 class="font-headline bk-table-title">Current Itineraries</h2>
+      <div class="bk-filter-tabs">
+        <button [class.active]="activeFilter() === 'all'" (click)="changeFilter('all')">All</button>
+        <button [class.active]="activeFilter() === 'confirmed'" (click)="changeFilter('confirmed')">Confirmed</button>
+        <button [class.active]="activeFilter() === 'pending'" (click)="changeFilter('pending')">Pending</button>
+        <button [class.active]="activeFilter() === 'cancelled'" (click)="changeFilter('cancelled')">Cancelled</button>
+      </div>
+    </div>
+
+    <div class="bk-table-wrap">
+      <!-- Loading -->
+      <div class="bk-empty" *ngIf="loading()">
+        <span class="material-symbols-outlined bk-empty-icon spin">flight_takeoff</span>
+        <p>Loading your bookings...</p>
+      </div>
+
+      <!-- Empty -->
+      <div class="bk-empty" *ngIf="!loading() && filteredBookings().length === 0">
+        <span class="material-symbols-outlined bk-empty-icon">confirmation_number</span>
+        <p>No bookings found</p>
+        <a [routerLink]="['/', authService.userRole() === 'Dealer' ? 'dealer' : 'passenger', 'search']" class="bk-btn-primary" style="margin-top:1rem;">Search Flights</a>
+      </div>
+
+      <!-- Table -->
+      <table *ngIf="!loading() && filteredBookings().length > 0">
+        <thead>
+          <tr>
+            <th>PNR Reference</th>
+            <th>Details</th>
+            <th>Class</th>
+            <th>Passengers</th>
+            <th>Status</th>
+            <th class="text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let b of filteredBookings()">
+            <td>
+              <span class="bk-pnr">{{ b.pnr }}</span>
+            </td>
+            <td>
+              <div class="bk-flight-info">
+                <div class="bk-flight-icon">
+                  <span class="material-symbols-outlined">flight</span>
+                </div>
+                <div>
+                  <p class="bk-flight-id">Flight #{{ b.flightId }}</p>
+                  <p class="bk-booking-id">Booking #{{ b.id }}</p>
+                </div>
+              </div>
+            </td>
+            <td>
+              <span class="bk-class-badge">{{ b.seatClass || 'Economy' }}</span>
+            </td>
+            <td>
+              <span class="bk-pax">{{ b.totalPassengers || 1 }} Pax</span>
+            </td>
+            <td>
+              <span class="bk-status" [ngClass]="getStatusClass(b.status)">
+                <span class="bk-status-dot"></span>
+                {{ b.status }}
+              </span>
+            </td>
+            <td class="text-right">
+              <div class="bk-actions">
+                <a *ngIf="b.status.toLowerCase() === 'pending'" [routerLink]="['/', authService.userRole() === 'Dealer' ? 'dealer' : 'passenger', 'payment', b.id]" class="bk-action-primary">Pay Now</a>
+                <button *ngIf="b.status.toLowerCase() === 'confirmed'" (click)="viewBooking(b)" class="bk-action-view" title="View Details">
+                  <span class="material-symbols-outlined">visibility</span> View
+                </button>
+                <button *ngIf="b.status.toLowerCase() !== 'cancelled'" class="bk-action-danger" (click)="cancelBooking(b.id)" title="Cancel">
+                  <span class="material-symbols-outlined">cancel</span>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Footer & Pagination -->
+    <div class="bk-table-footer" *ngIf="filteredBookings().length > 0">
+      <p class="bk-footer-text">Showing <strong>{{ (currentPage() - 1) * itemsPerPage + 1 }} - {{ (currentPage() - 1) * itemsPerPage + filteredBookings().length }}</strong> of {{ totalFilteredCount() }} bookings</p>
+      
+      <!-- Pagination Controls -->
+      <div class="bk-paginator" *ngIf="totalPages() > 1">
+        <button class="pag-btn" [disabled]="currentPage() === 1" (click)="setPage(currentPage() - 1)">
+          <span class="material-symbols-outlined">chevron_left</span>
+        </button>
+        <button *ngFor="let p of pages()" class="pag-num" [class.active]="p === currentPage()" (click)="setPage(p)">
+          {{ p }}
+        </button>
+        <button class="pag-btn" [disabled]="currentPage() === totalPages()" (click)="setPage(currentPage() + 1)">
+          <span class="material-symbols-outlined">chevron_right</span>
+        </button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- Details Modal -->
+<div class="modal-overlay" *ngIf="showModal()" (click)="closeModal()">
+  <div class="modal-card" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="font-headline modal-title">Booking Details</h2>
+      <button class="modal-close" (click)="closeModal()">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+
+    <div class="modal-content" *ngIf="selectedBooking()">
+      <div class="modal-info-item">
+        <label>PNR Reference</label>
+        <p class="modal-pnr">{{ selectedBooking()!.pnr }}</p>
+      </div>
+
+      <div class="modal-body">
+          <div class="modal-loading-overlay" *ngIf="modalLoading()">
+            <span class="loader"></span>
+          </div>
+
+          <!-- Flight Journey Section -->
+          <div class="flight-journey-card" *ngIf="selectedFlight()">
+            <div class="journey-row">
+              <div class="journey-point">
+                <div class="jp-code">{{ selectedFlight()?.source }}</div>
+                <div class="jp-name">{{ selectedFlight()?.source || 'Origin' }}</div>
+                <div class="jp-time">{{ selectedFlight()?.departureTime | date:'shortTime' }}</div>
+              </div>
+              
+              <div class="journey-path">
+                <div class="jp-flight-info">
+                  <span class="jp-flight-no">{{ selectedFlight()?.flightNumber }}</span>
+                  <div class="jp-line">
+                    <div class="jp-dot"></div>
+                    <div class="jp-connector"></div>
+                    <span class="material-symbols-outlined jp-icon">flight</span>
+                    <div class="jp-connector"></div>
+                    <div class="jp-dot gray"></div>
+                  </div>
+                  <span class="jp-duration">{{ getDuration(selectedFlight()!.departureTime, selectedFlight()!.arrivalTime) }} Duration</span>
+                </div>
+              </div>
+
+              <div class="journey-point text-right">
+                <div class="jp-code">{{ selectedFlight()?.destination }}</div>
+                <div class="jp-name">{{ selectedFlight()?.destination || 'Destination' }}</div>
+                <div class="jp-time">{{ selectedFlight()?.arrivalTime | date:'shortTime' }}</div>
+              </div>
+          </div>
+
+          <!-- Baggage Status Section -->
+          <div class="modal-section baggage-container">
+            <h4 class="section-title">
+              <span class="material-symbols-outlined">luggage</span>
+              Baggage Tracking
+            </h4>
+            
+            <!-- Empty State -->
+            <div class="baggage-empty" *ngIf="baggagesOfBooking().length === 0">
+              <span class="material-symbols-outlined">info</span>
+              <p>No checked baggage found for this booking. If you've just checked in, please wait a moment for the system to sync.</p>
+            </div>
+
+            <!-- List State -->
+            <div class="baggage-list" *ngIf="baggagesOfBooking().length > 0">
+              <div class="baggage-item" *ngFor="let bag of baggagesOfBooking()">
+                <div class="bag-info">
+                  <div class="bag-main">
+                    <span class="bag-tag">{{ bag.trackingNumber }}</span>
+                    <span class="bag-flight">Flight: {{ bag.flightNumber }}</span>
+                  </div>
+                  <span class="bag-weight">{{ bag.weight }} kg</span>
+                </div>
+                <div class="bag-status-track">
+                  <div class="status-dot" [class.active]="true"></div>
+                  <div class="status-line" [class.active]="bag.status === 'Loaded' || bag.status === 'InTransit' || bag.status === 'Delivered'"></div>
+                  <div class="status-dot" [class.active]="bag.status === 'Loaded' || bag.status === 'InTransit' || bag.status === 'Delivered'"></div>
+                  <div class="status-line" [class.active]="bag.status === 'InTransit' || bag.status === 'Delivered'"></div>
+                  <div class="status-dot" [class.active]="bag.status === 'InTransit' || bag.status === 'Delivered'"></div>
+                  <div class="status-line" [class.active]="bag.status === 'Delivered' || bag.isDelivered"></div>
+                  <div class="status-dot" [class.active]="bag.status === 'Delivered' || bag.isDelivered"></div>
+                </div>
+                <div class="bag-status-label">
+                  <span [class.active]="true">Checked</span>
+                  <span [class.active]="bag.status === 'Loaded' || bag.status === 'InTransit' || bag.status === 'Delivered'">Loaded</span>
+                  <span [class.active]="bag.status === 'InTransit' || bag.status === 'Delivered'">In Transit</span>
+                  <span [class.active]="bag.status === 'Delivered' || bag.isDelivered">Delivered</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Booking Details Grid -->
+          <div class="modal-section details-grid">
+            <div class="m-info-group">
+              <label>Baggage Allowance</label>
+              <p>{{ (selectedBooking()?.baggageWeight || 0) > 0 ? selectedBooking()?.baggageWeight : 23 }} KG</p>
+            </div>
+            <div class="m-info-group">
+              <label>Seat Class</label>
+              <p class="premium-text">{{ selectedBooking()?.seatClass || 'Economy' }}</p>
+            </div>
+            <div class="m-info-group">
+              <label>Booking Date</label>
+              <p>{{ selectedBooking()?.createdAt | date:'mediumDate' }}</p>
+            </div>
+            <div class="m-info-group">
+              <label>Total Fare</label>
+              <p class="price-text">₹{{ selectedBooking()?.totalAmount | number:'1.2-2' }}</p>
+            </div>
+          </div>
+
+      <div class="modal-passenger-list">
+        <h3 class="font-headline pax-list-title">Passenger Manifest</h3>
+        
+        <div class="modal-loader" *ngIf="modalLoading()">
+          <span class="material-symbols-outlined spin">flight_takeoff</span>
+          <p>Fetching passenger details...</p>
+        </div>
+
+        <table class="modal-table" *ngIf="!modalLoading() && passengersOfBooking().length > 0">
+          <thead>
+            <tr>
+              <th>Passenger Name</th>
+              <th>Age / Gender</th>
+              <th>Seat Number</th>
+              <th>Status</th>
+              <th class="text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let p of passengersOfBooking()">
+              <td>
+                <p class="pax-name">{{ p.name }}</p>
+                <p class="pax-aadhar">Aadhar: {{ p.aadharCardNo }}</p>
+              </td>
+              <td>{{ p.age }} / {{ p.gender }}</td>
+              <td>
+                <span class="pax-seat" [class.no-seat]="!p.seatNumber">{{ p.seatNumber || 'N/A' }}</span>
+              </td>
+              <td>
+                 <span class="bk-status" [ngClass]="getStatusClass(p.status)">
+                   <span class="bk-status-dot"></span>
+                   {{ p.status }}
+                 </span>
+              </td>
+              <td class="text-right">
+                <button *ngIf="p.status?.toLowerCase() !== 'cancelled' && selectedBooking()!.status?.toLowerCase() !== 'cancelled'" class="bk-action-danger" (click)="cancelPassenger(p.id)" title="Cancel Passenger">
+                  <span class="material-symbols-outlined">person_remove</span>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+

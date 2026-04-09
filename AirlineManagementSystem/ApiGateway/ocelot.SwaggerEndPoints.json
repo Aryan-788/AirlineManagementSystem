@@ -1,0 +1,104 @@
+{
+  "SwaggerEndPoints": [
+    {
+      "Key": "identity",
+      "Config": [
+        {
+          "Name": "Identity API",
+          "Version": "v1",
+          "Url": "http://identity-service:5001/swagger/v1/swagger.json"
+        }
+      ]
+    },
+    {
+      "Key": "flights",
+      "Config": [
+        {
+          "Name": "Flights API",
+          "Version": "v1",
+          "Url": "http://flight-service:5002/swagger/v1/swagger.json"
+        }
+      ]
+    },
+    {
+      "Key": "bookings",
+      "Config": [
+        {
+          "Name": "Bookings API",
+          "Version": "v1",
+          "Url": "http://booking-service:5003/swagger/v1/swagger.json"
+        }
+      ]
+    },
+    {
+      "Key": "payments",
+      "Config": [
+        {
+          "Name": "Payments API",
+          "Version": "v1",
+          "Url": "http://payment-service:5004/swagger/v1/swagger.json"
+        }
+      ]
+    },
+    {
+      "Key": "checkins",
+      "Config": [
+        {
+          "Name": "CheckIns API",
+          "Version": "v1",
+          "Url": "http://checkin-service:5005/swagger/v1/swagger.json"
+        }
+      ]
+    },
+    {
+      "Key": "baggages",
+      "Config": [
+        {
+          "Name": "Baggages API",
+          "Version": "v1",
+          "Url": "http://baggage-service:5006/swagger/v1/swagger.json"
+        }
+      ]
+    },
+    {
+      "Key": "rewards",
+      "Config": [
+        {
+          "Name": "Rewards API",
+          "Version": "v1",
+          "Url": "http://reward-service:5007/swagger/v1/swagger.json"
+        }
+      ]
+    },
+    {
+      "Key": "agents",
+      "Config": [
+        {
+          "Name": "Agents API",
+          "Version": "v1",
+          "Url": "http://agent-service:5008/swagger/v1/swagger.json"
+        }
+      ]
+    },
+    {
+      "Key": "notifications",
+      "Config": [
+        {
+          "Name": "Notifications API",
+          "Version": "v1",
+          "Url": "http://notification-service:5009/swagger/v1/swagger.json"
+        }
+      ]
+    },
+    {
+      "Key": "admin",
+      "Config": [
+        {
+          "Name": "Admin API",
+          "Version": "v1",
+          "Url": "http://admin-service:5010/swagger/v1/swagger.json"
+        }
+      ]
+    }
+  ]
+}

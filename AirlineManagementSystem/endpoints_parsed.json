@@ -1,0 +1,382 @@
+﻿[
+    {
+        "Service":  "AdminService",
+        "File":  "AdminController.cs",
+        "Line":  "[HttpGet(\"dashboard\")]"
+    },
+    {
+        "Service":  "AdminService",
+        "File":  "AdminController.cs",
+        "Line":  "[HttpGet(\"booking-report\")]"
+    },
+    {
+        "Service":  "AdminService",
+        "File":  "AdminController.cs",
+        "Line":  "[HttpGet(\"revenue-report\")]"
+    },
+    {
+        "Service":  "AgentService",
+        "File":  "AgentsController.cs",
+        "Line":  "[HttpPost(\"dealer\")]"
+    },
+    {
+        "Service":  "AgentService",
+        "File":  "AgentsController.cs",
+        "Line":  "[HttpGet(\"dealer/{id}\")]"
+    },
+    {
+        "Service":  "AgentService",
+        "File":  "AgentsController.cs",
+        "Line":  "[HttpGet(\"dealer/by-email\")]"
+    },
+    {
+        "Service":  "AgentService",
+        "File":  "AgentsController.cs",
+        "Line":  "[HttpPost(\"dealer/{dealerId}/allocate-seats\")]"
+    },
+    {
+        "Service":  "AgentService",
+        "File":  "AgentsController.cs",
+        "Line":  "[HttpPost(\"booking/record\")]"
+    },
+    {
+        "Service":  "AgentService",
+        "File":  "AgentsController.cs",
+        "Line":  "[HttpGet(\"commission-report\")]"
+    },
+    {
+        "Service":  "AgentService",
+        "File":  "AgentsController.cs",
+        "Line":  "[HttpGet(\"dealers\")]"
+    },
+    {
+        "Service":  "AgentService",
+        "File":  "AgentsController.cs",
+        "Line":  "[HttpGet(\"dealer/{dealerId}/performance\")]"
+    },
+    {
+        "Service":  "BaggageService",
+        "File":  "BaggagesController.cs",
+        "Line":  "[HttpPost]"
+    },
+    {
+        "Service":  "BaggageService",
+        "File":  "BaggagesController.cs",
+        "Line":  "[HttpGet(\"{id}\")]"
+    },
+    {
+        "Service":  "BaggageService",
+        "File":  "BaggagesController.cs",
+        "Line":  "[HttpPut(\"{id}/status\")]"
+    },
+    {
+        "Service":  "BaggageService",
+        "File":  "BaggagesController.cs",
+        "Line":  "[HttpPost(\"{id}/deliver\")]"
+    },
+    {
+        "Service":  "BaggageService",
+        "File":  "BaggagesController.cs",
+        "Line":  "[HttpGet(\"booking/{bookingId}\")]"
+    },
+    {
+        "Service":  "BaggageService",
+        "File":  "BaggagesController.cs",
+        "Line":  "[HttpGet(\"track/{trackingNumber}\")]"
+    },
+    {
+        "Service":  "BaggageService",
+        "File":  "BaggagesController.cs",
+        "Line":  "[HttpGet]"
+    },
+    {
+        "Service":  "BaggageService",
+        "File":  "BaggagesController.cs",
+        "Line":  "[HttpGet(\"summary\")]"
+    },
+    {
+        "Service":  "BookingService",
+        "File":  "BookingsController.cs",
+        "Line":  "[HttpPost]"
+    },
+    {
+        "Service":  "BookingService",
+        "File":  "BookingsController.cs",
+        "Line":  "[HttpPost(\"{bookingId}/passengers\")]"
+    },
+    {
+        "Service":  "BookingService",
+        "File":  "BookingsController.cs",
+        "Line":  "[HttpGet(\"{bookingId}/passengers\")]"
+    },
+    {
+        "Service":  "BookingService",
+        "File":  "BookingsController.cs",
+        "Line":  "[HttpPost(\"passengers/{passengerId}/cancel\")]"
+    },
+    {
+        "Service":  "BookingService",
+        "File":  "BookingsController.cs",
+        "Line":  "[HttpGet(\"{id}\")]"
+    },
+    {
+        "Service":  "BookingService",
+        "File":  "BookingsController.cs",
+        "Line":  "[HttpGet(\"pnr/{pnr}\")]"
+    },
+    {
+        "Service":  "BookingService",
+        "File":  "BookingsController.cs",
+        "Line":  "[HttpPost(\"{id}/cancel\")]"
+    },
+    {
+        "Service":  "BookingService",
+        "File":  "BookingsController.cs",
+        "Line":  "[HttpGet(\"history/{userId}\")]"
+    },
+    {
+        "Service":  "BookingService",
+        "File":  "BookingsController.cs",
+        "Line":  "[HttpGet(\"schedule/{scheduleId}\")]"
+    },
+    {
+        "Service":  "BookingService",
+        "File":  "BookingsController.cs",
+        "Line":  "[HttpGet(\"occupied-seats\")]"
+    },
+    {
+        "Service":  "CheckInService",
+        "File":  "CheckInsController.cs",
+        "Line":  "[HttpPost(\"online\")]"
+    },
+    {
+        "Service":  "CheckInService",
+        "File":  "CheckInsController.cs",
+        "Line":  "[HttpGet(\"{id}\")]"
+    },
+    {
+        "Service":  "CheckInService",
+        "File":  "CheckInsController.cs",
+        "Line":  "[HttpGet(\"{id}/boarding-pass\")]"
+    },
+    {
+        "Service":  "CheckInService",
+        "File":  "CheckInsController.cs",
+        "Line":  "[HttpGet(\"summary\")]"
+    },
+    {
+        "Service":  "FlightService",
+        "File":  "FlightsController.cs",
+        "Line":  "[HttpPost]"
+    },
+    {
+        "Service":  "FlightService",
+        "File":  "FlightsController.cs",
+        "Line":  "[HttpGet(\"{id:int}\")]"
+    },
+    {
+        "Service":  "FlightService",
+        "File":  "FlightsController.cs",
+        "Line":  "[HttpPut(\"{id:int}\")]"
+    },
+    {
+        "Service":  "FlightService",
+        "File":  "FlightsController.cs",
+        "Line":  "[HttpDelete(\"{id:int}\")]"
+    },
+    {
+        "Service":  "FlightService",
+        "File":  "FlightsController.cs",
+        "Line":  "[HttpGet(\"search\")]"
+    },
+    {
+        "Service":  "FlightService",
+        "File":  "FlightsController.cs",
+        "Line":  "[HttpGet]"
+    },
+    {
+        "Service":  "FlightService",
+        "File":  "FlightsController.cs",
+        "Line":  "[HttpPost(\"{id:int}/delay\")]"
+    },
+    {
+        "Service":  "FlightService",
+        "File":  "FlightsController.cs",
+        "Line":  "[HttpPost(\"{id:int}/cancel\")]"
+    },
+    {
+        "Service":  "FlightService",
+        "File":  "FlightsController.cs",
+        "Line":  "[HttpPost(\"{id:int}/assign-gate\")]"
+    },
+    {
+        "Service":  "FlightService",
+        "File":  "FlightsController.cs",
+        "Line":  "[HttpPost(\"{id:int}/assign-aircraft\")]"
+    },
+    {
+        "Service":  "FlightService",
+        "File":  "FlightsController.cs",
+        "Line":  "[HttpPost(\"{id:int}/assign-crew\")]"
+    },
+    {
+        "Service":  "FlightService",
+        "File":  "FlightsController.cs",
+        "Line":  "[HttpPost(\"{id:int}/book-seat\")]"
+    },
+    {
+        "Service":  "FlightService",
+        "File":  "FlightsController.cs",
+        "Line":  "[HttpPost(\"schedules\")]"
+    },
+    {
+        "Service":  "FlightService",
+        "File":  "FlightsController.cs",
+        "Line":  "[HttpGet(\"schedules\")]"
+    },
+    {
+        "Service":  "FlightService",
+        "File":  "FlightsController.cs",
+        "Line":  "[HttpGet(\"schedules/{id:int}\")]"
+    },
+    {
+        "Service":  "FlightService",
+        "File":  "FlightsController.cs",
+        "Line":  "[HttpGet(\"schedules/search\")]"
+    },
+    {
+        "Service":  "FlightService",
+        "File":  "FlightsController.cs",
+        "Line":  "[HttpGet(\"{flightId:int}/schedules\")]"
+    },
+    {
+        "Service":  "FlightService",
+        "File":  "FlightsController.cs",
+        "Line":  "[HttpPut(\"schedules/{id:int}\")]"
+    },
+    {
+        "Service":  "FlightService",
+        "File":  "FlightsController.cs",
+        "Line":  "[HttpDelete(\"schedules/{id:int}\")]"
+    },
+    {
+        "Service":  "FlightService",
+        "File":  "FlightsController.cs",
+        "Line":  "[HttpPost(\"schedules/{id:int}/cancel\")]"
+    },
+    {
+        "Service":  "FlightService",
+        "File":  "FlightsController.cs",
+        "Line":  "[HttpPost(\"schedules/{id:int}/book-seat\")]"
+    },
+    {
+        "Service":  "IdentityService",
+        "File":  "AuthController.cs",
+        "Line":  "[HttpPost(\"register\")]"
+    },
+    {
+        "Service":  "IdentityService",
+        "File":  "AuthController.cs",
+        "Line":  "[HttpPost(\"register-verify\")]"
+    },
+    {
+        "Service":  "IdentityService",
+        "File":  "AuthController.cs",
+        "Line":  "[HttpPost(\"resend-verification\")]"
+    },
+    {
+        "Service":  "IdentityService",
+        "File":  "AuthController.cs",
+        "Line":  "[HttpPost(\"login\")]"
+    },
+    {
+        "Service":  "IdentityService",
+        "File":  "AuthController.cs",
+        "Line":  "[HttpPost(\"oauth-login\")]"
+    },
+    {
+        "Service":  "IdentityService",
+        "File":  "AuthController.cs",
+        "Line":  "[HttpGet(\"user/{userId}\")]"
+    },
+    {
+        "Service":  "IdentityService",
+        "File":  "AuthController.cs",
+        "Line":  "[HttpPut(\"user/{userId}/profile\")]"
+    },
+    {
+        "Service":  "IdentityService",
+        "File":  "AuthController.cs",
+        "Line":  "[HttpPost(\"forgot-password\")]"
+    },
+    {
+        "Service":  "IdentityService",
+        "File":  "AuthController.cs",
+        "Line":  "[HttpPost(\"reset-password\")]"
+    },
+    {
+        "Service":  "NotificationService",
+        "File":  "NotificationsController.cs",
+        "Line":  "[HttpGet(\"{id}\")]"
+    },
+    {
+        "Service":  "NotificationService",
+        "File":  "NotificationsController.cs",
+        "Line":  "[HttpGet(\"user/{userId}\")]"
+    },
+    {
+        "Service":  "NotificationService",
+        "File":  "NotificationsController.cs",
+        "Line":  "[HttpPut(\"mark-as-read/{id}\")]"
+    },
+    {
+        "Service":  "NotificationService",
+        "File":  "NotificationsController.cs",
+        "Line":  "[HttpPut(\"mark-all-as-read/{userId}\")]"
+    },
+    {
+        "Service":  "PaymentService",
+        "File":  "PaymentsController.cs",
+        "Line":  "[HttpPost(\"create-order\")]"
+    },
+    {
+        "Service":  "PaymentService",
+        "File":  "PaymentsController.cs",
+        "Line":  "[HttpPost(\"verify\")]"
+    },
+    {
+        "Service":  "PaymentService",
+        "File":  "PaymentsController.cs",
+        "Line":  "[HttpPost(\"process\")]"
+    },
+    {
+        "Service":  "PaymentService",
+        "File":  "PaymentsController.cs",
+        "Line":  "[HttpGet(\"{id}\")]"
+    },
+    {
+        "Service":  "PaymentService",
+        "File":  "PaymentsController.cs",
+        "Line":  "[HttpPost(\"{id}/refund\")]"
+    },
+    {
+        "Service":  "RewardService",
+        "File":  "RewardsController.cs",
+        "Line":  "[HttpPost(\"earn\")]"
+    },
+    {
+        "Service":  "RewardService",
+        "File":  "RewardsController.cs",
+        "Line":  "[HttpGet(\"{userId}/balance\")]"
+    },
+    {
+        "Service":  "RewardService",
+        "File":  "RewardsController.cs",
+        "Line":  "[HttpGet(\"{userId}/history\")]"
+    },
+    {
+        "Service":  "RewardService",
+        "File":  "RewardsController.cs",
+        "Line":  "[HttpPost(\"redeem\")]"
+    }
+]

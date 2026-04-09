@@ -1,0 +1,103 @@
+<app-top-navbar [showSearch]="false"></app-top-navbar>
+
+<div class="checkin-container">
+  <div class="checkin-header">
+    <h1 class="font-headline">Online Check-In</h1>
+    <p>Select a confirmed booking to check-in and get your boarding pass.</p>
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading-spinner" *ngIf="loading()">
+    <div class="spinner"></div>
+    <p>Retrieving your confirmed bookings...</p>
+  </div>
+
+  <!-- Empty State -->
+  <div class="empty-state" *ngIf="!loading() && bookings().length === 0">
+    <span class="material-symbols-outlined">confirmation_number</span>
+    <h3>No confirmed bookings found.</h3>
+    <p>Please book a flight or complete payment to check-in.</p>
+    <button routerLink="/passenger/search" class="primary-btn">Book a Flight</button>
+  </div>
+
+  <!-- Bookings List -->
+  <div class="bookings-grid" *ngIf="!loading() && bookings().length > 0">
+    <div class="booking-card" *ngFor="let b of bookings()">
+      <div class="card-header">
+        <span class="pnr-badge">PNR: {{ b.pnr }}</span>
+        <span class="status-badge" [class.confirmed]="b.status === 'Confirmed'">{{ b.status }}</span>
+      </div>
+      <div class="card-content">
+        <div class="flight-info">
+          <div class="info-item">
+            <span class="label">Booking ID</span>
+            <span class="value">#{{ b.id }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Date</span>
+            <span class="value">{{ b.createdAt | date:'mediumDate' }}</span>
+          </div>
+        </div>
+        <button 
+          class="checkin-btn" 
+          (click)="performCheckIn(b)"
+          [disabled]="isProcessing(b.id)"
+        >
+          {{ isProcessing(b.id) ? 'Checking In...' : 'Confirm Check-In' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Boarding Pass Modal -->
+<div class="modal-overlay" *ngIf="showBoardingPass()" (click)="closeBoardingPass()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="boarding-pass">
+      <div class="pass-header">
+        <div class="airline-info">
+          <span class="material-symbols-outlined">flight</span>
+          <span class="airline-name font-headline">SkyLedger Airlines</span>
+        </div>
+        <div class="pass-class font-headline">BOARDING PASS</div>
+      </div>
+      
+      <div class="pass-body">
+        <div class="passenger-details">
+          <div class="detail-group">
+            <label>PASSENGER NAME</label>
+            <div class="detail-value font-headline">{{ currentBoardingPass()?.passengerName }}</div>
+          </div>
+          <div class="detail-group">
+            <label>FLIGHT</label>
+            <div class="detail-value font-headline">{{ currentBoardingPass()?.flightNumber }}</div>
+          </div>
+        </div>
+        
+        <div class="route-details">
+          <div class="detail-group">
+            <label>GATE</label>
+            <div class="detail-value font-headline">{{ currentBoardingPass()?.gate || 'B12' }}</div>
+          </div>
+          <div class="detail-group">
+            <label>SEAT</label>
+            <div class="detail-value font-headline highlight">{{ currentBoardingPass()?.seatNumber }}</div>
+          </div>
+        </div>
+        
+        <div class="qr-section">
+          <img [src]="'data:image/png;base64,' + currentBoardingPass()?.qrCode" alt="Boarding Pass QR Code" class="qr-code">
+          <div class="pnr-info">
+             <label>PNR</label>
+             <div class="font-headline">{{ bookings()[0]?.pnr }}</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="pass-footer">
+        <p>Please present this boarding pass at the gate 30 minutes before departure.</p>
+        <button class="close-btn" (click)="closeBoardingPass()">Close & Return</button>
+      </div>
+    </div>
+  </div>
+</div>

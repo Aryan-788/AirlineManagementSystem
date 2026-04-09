@@ -1,0 +1,144 @@
+<app-top-navbar></app-top-navbar>
+<app-side-navbar subtitle="Dealer Portal" [navItems]="sideNavItems"></app-side-navbar>
+
+<main class="dealer-main">
+  <header class="d-header">
+    <div>
+      <h1 class="font-headline d-title">Dealer Performance</h1>
+      <p class="d-sub">Welcome back, Agent. Here is your allocation overview for today.</p>
+    </div>
+    <div class="header-actions">
+      <button class="d-cta-btn" routerLink="/dealer/search">
+        <span class="material-symbols-outlined">travel_explore</span>
+        Book a Flight
+      </button>
+      <div class="date-badge">
+        <span class="material-symbols-outlined">calendar_today</span>
+        <span>{{ today }}</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Metrics -->
+  <div class="d-metrics">
+    <div class="d-metric">
+      <div class="dm-top">
+        <div class="dm-icon dm-i1"><span class="material-symbols-outlined">event_seat</span></div>
+        <span class="dm-badge green">Quota Info</span>
+      </div>
+      <h3 class="dm-label">Allocated Seats</h3>
+      <p class="dm-value font-headline">{{ performance()?.allocatedSeats || 0 }}</p>
+      <div class="dm-bar-track">
+        <div class="dm-bar" [style.width.%]="performance() ? (performance()!.usedSeats / (performance()!.allocatedSeats || 1) * 100) : 0" style="background:var(--primary)"></div>
+      </div>
+      <p class="dm-note">{{ performance()?.usedSeats || 0 }} used, {{ performance()?.availableSeats || 0 }} available</p>
+    </div>
+    <div class="d-metric">
+      <div class="dm-top">
+        <div class="dm-icon dm-i2"><span class="material-symbols-outlined">confirmation_number</span></div>
+        <span class="dm-badge blue">Sales</span>
+      </div>
+      <h3 class="dm-label">Total Bookings</h3>
+      <p class="dm-value font-headline">{{ performance()?.totalBookings || 0 }}</p>
+      <div class="dm-bar-track"><div class="dm-bar" style="width:100%;background:var(--secondary)"></div></div>
+      <p class="dm-note">Booking Volume</p>
+    </div>
+    <div class="d-metric">
+      <div class="dm-top">
+        <div class="dm-icon dm-i3"><span class="material-symbols-outlined">payments</span></div>
+        <span class="dm-badge amber">Earnings</span>
+      </div>
+      <h3 class="dm-label">Total Commission</h3>
+      <p class="dm-value font-headline">₹{{ (performance()?.totalCommission || 0) | number:'1.2-2' }}</p>
+      <div class="dm-trend">
+        <span class="material-symbols-outlined">trending_up</span>
+        <span class="dm-trend-val">{{ performance()?.commissionRate }}%</span>
+        <span class="dm-trend-label">Commission Rate</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bento Layout -->
+  <div class="bento-row">
+    <!-- Quick Search -->
+    <section class="search-panel">
+      <div class="sp-top">
+        <h2 class="font-headline sp-title">Quick Flight Search</h2>
+        <span class="sp-badge">Agent Portal</span>
+      </div>
+      <form class="sp-form" (ngSubmit)="searchAllocations()">
+        <div class="sp-row">
+          <div class="sp-field"><label>From</label><div class="sp-input"><span class="material-symbols-outlined">flight_takeoff</span><input type="text" [ngModel]="source()" (ngModelChange)="source.set($event)" name="s" placeholder="From"/></div></div>
+          <div class="sp-field"><label>To</label><div class="sp-input"><span class="material-symbols-outlined">flight_land</span><input type="text" [ngModel]="destination()" (ngModelChange)="destination.set($event)" name="d" placeholder="To"/></div></div>
+        </div>
+        <div class="sp-field"><label>Departure Date</label><div class="sp-input"><span class="material-symbols-outlined">calendar_month</span><input type="date" [ngModel]="departureDate()" (ngModelChange)="departureDate.set($event)" name="dd" /></div></div>
+        <div class="sp-row">
+          <div class="sp-field"><label>Class</label><select class="sp-select" [ngModel]="seatClass()" (ngModelChange)="seatClass.set($event)" name="sc"><option>Economy</option><option>Business</option><option>First Class</option></select></div>
+          <div class="sp-field"><label>Passengers</label><input type="number" class="sp-select" value="1" min="1" /></div>
+        </div>
+        <button type="submit" class="sp-submit">SEARCH ALLOCATIONS</button>
+      </form>
+    </section>
+
+    <!-- Commission Chart -->
+    <section class="chart-panel">
+      <div class="cp-top">
+        <div><h2 class="font-headline sp-title">Commission Report</h2><p class="cp-sub">Weekly earnings breakdown</p></div>
+        <div class="cp-tabs"><button class="cpt-active">WEEKLY</button><button class="cpt">MONTHLY</button></div>
+      </div>
+      <div class="bar-chart">
+        <div class="bar-col" *ngFor="let day of ['MON','TUE','WED','THU','FRI','SAT','SUN']; let i = index">
+          <div class="bar-track" [style.height.%]="[60,85,45,100,75,55,30][i]">
+            <div class="bar-fill" [style.height.%]="[40,65,25,100,55,35,15][i]" [class.bar-active]="i===3"></div>
+          </div>
+          <span class="bar-label" [class.bar-label-active]="i===3">{{ day }}</span>
+        </div>
+      </div>
+      <div class="cp-gradient"></div>
+    </section>
+  </div>
+
+  <!-- Available Flights -->
+  <section class="alloc-table" *ngIf="flights().length > 0">
+    <div class="at-header"><div><h2 class="font-headline sp-title">Available Flights</h2><p class="cp-sub">Flights from search results</p></div></div>
+    <div class="at-wrap">
+      <table>
+        <thead><tr><th>FLIGHT</th><th>ROUTE</th><th>DEPARTURE</th><th>AIRCRAFT</th><th>SEATS</th><th>STATUS</th></tr></thead>
+        <tbody>
+          <tr *ngFor="let f of flights()">
+            <td><span class="fn-code">{{ f.flightNumber }}</span></td>
+            <td>{{ f.source }} → {{ f.destination }}</td>
+            <td class="text-muted">{{ f.departureTime | date:'short' }}</td>
+            <td>{{ f.aircraft }}</td>
+            <td><span class="seat-badge-sm">{{ f.availableSeats }}</span></td>
+            <td><span class="tag-sm tag-green">{{ f.status }}</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Recent Bookings -->
+  <section class="alloc-table" *ngIf="recentBookings().length > 0">
+    <div class="at-header">
+      <div><h2 class="font-headline sp-title">Recent Bookings</h2><p class="cp-sub">Your latest customer bookings</p></div>
+      <a routerLink="/dealer/my-bookings" class="at-view-all">View All →</a>
+    </div>
+    <div class="at-wrap">
+      <table>
+        <thead><tr><th>PNR</th><th>CLASS</th><th>PASSENGERS</th><th>AMOUNT</th><th>STATUS</th><th>DATE</th></tr></thead>
+        <tbody>
+          <tr *ngFor="let b of recentBookings()">
+            <td><span class="fn-code">{{ b.pnr }}</span></td>
+            <td>{{ b.seatClass }}</td>
+            <td>{{ b.totalPassengers }}</td>
+            <td><strong>₹{{ b.totalAmount | number:'1.2-2' }}</strong></td>
+            <td><span class="tag-sm" [class.tag-green]="b.status === 'Confirmed'" [class.tag-amber]="b.status === 'Pending'" [class.tag-red]="b.status === 'Cancelled'">{{ b.status }}</span></td>
+            <td class="text-muted">{{ b.createdAt | date:'mediumDate' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>
+

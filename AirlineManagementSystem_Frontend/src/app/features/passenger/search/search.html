@@ -1,0 +1,228 @@
+<app-top-navbar></app-top-navbar>
+<main class="search-main">
+  <!-- Hero Section -->
+  <section class="search-hero">
+    <div class="hero-bg"></div>
+    <div class="hero-overlay-g"></div>
+    <div class="hero-inner">
+      <h1 class="font-headline hero-title">Elevate Your Journey</h1>
+      <p class="hero-desc">Experience the pinnacle of aviation management with precision-timed flight routes.</p>
+    </div>
+  </section>
+
+  <!-- Search Bar moved outside hero to avoid overflow clipping -->
+  <div class="search-bar">
+    <div class="search-field">
+      <label>FROM</label>
+      <div class="field-input" style="position: relative;">
+        <span class="material-symbols-outlined">flight_takeoff</span>
+        <input type="text" placeholder="e.g. Mumbai" [ngModel]="source()" (ngModelChange)="source.set($event)" (focus)="showSourceDropdown.set(true)" (blur)="onSourceBlur()" autocomplete="off" />
+        <div class="custom-dropdown" *ngIf="showSourceDropdown() && filteredSources().length > 0">
+          <div class="dropdown-item" *ngFor="let c of filteredSources()" (mousedown)="selectSource(c)">
+            <span class="material-symbols-outlined" style="font-size:16px">location_on</span> {{ c }}
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="search-field">
+      <label>TO</label>
+      <div class="field-input" style="position: relative;">
+        <span class="material-symbols-outlined">flight_land</span>
+        <input type="text" placeholder="e.g. Delhi" [ngModel]="destination()" (ngModelChange)="destination.set($event)" (focus)="showDestDropdown.set(true)" (blur)="onDestBlur()" autocomplete="off" />
+        <div class="custom-dropdown" *ngIf="showDestDropdown() && filteredDests().length > 0">
+          <div class="dropdown-item" *ngFor="let c of filteredDests()" (mousedown)="selectDest(c)">
+            <span class="material-symbols-outlined" style="font-size:16px">location_on</span> {{ c }}
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="search-field">
+      <label>DEPARTURE</label>
+      <div class="field-input">
+        <span class="material-symbols-outlined">calendar_month</span>
+        <input type="date" [ngModel]="departureDate()" (ngModelChange)="departureDate.set($event)" />
+      </div>
+    </div>
+    <div class="search-field">
+      <label>PASSENGERS & CLASS</label>
+      <div class="field-input" style="gap: 0.25rem;">
+        <span class="material-symbols-outlined">group</span>
+        <input type="number" min="1" max="9" [ngModel]="passengers()" (ngModelChange)="passengers.set($event)" style="width: 35px; min-width: 35px; padding-left: 2px;" title="Passengers" />
+        <select [ngModel]="travelClass()" (ngModelChange)="travelClass.set($event)" style="flex: 1; min-width: 0;" title="Travel Class">
+          <option value="Economy">Economy</option>
+          <option value="Premium Economy">Premium</option>
+          <option value="Business">Business</option>
+          <option value="First Class">First Class</option>
+        </select>
+      </div>
+    </div>
+    <div class="search-field search-actions">
+      <button class="search-btn" (click)="searchFlights()">
+        <span class="material-symbols-outlined">search</span>
+        <span>Find Flights</span>
+      </button>
+      <button class="browse-btn" (click)="loadAllFlights()">Browse All</button>
+    </div>
+  </div>
+
+  <!-- Results -->
+  <div class="results-layout" *ngIf="hasSearched()">
+    <!-- Filter Sidebar -->
+    <aside class="filter-panel">
+      <div class="filter-header">
+        <h3 class="filter-title">Filters</h3>
+        <button class="filter-reset" (click)="resetFilters()">Reset All</button>
+      </div>
+
+      <!-- Price Range -->
+      <div class="filter-group">
+        <div class="filter-group-label">PRICE RANGE</div>
+        <div class="filter-price-val">Up to {{ filterMaxPrice() | currency:'INR':'symbol':'1.0-0' }}</div>
+        <input type="range" class="filter-slider" [min]="minPrice" [max]="maxPrice" step="500"
+          [ngModel]="filterMaxPrice()" (ngModelChange)="filterMaxPrice.set($event)" />
+        <div class="filter-price-minmax">
+          <span>{{ minPrice | currency:'INR':'symbol':'1.0-0' }}</span>
+          <span>{{ maxPrice | currency:'INR':'symbol':'1.0-0' }}</span>
+        </div>
+      </div>
+
+      <!-- Departure Time -->
+      <div class="filter-group">
+        <div class="filter-group-label">DEPARTURE TIME</div>
+        <div class="filter-time-grid">
+          <button class="filter-time-btn" [class.active]="filterDepartureTime() === 'all'" (click)="filterDepartureTime.set('all')">
+            <span class="material-symbols-outlined">schedule</span> All
+          </button>
+          <button class="filter-time-btn" [class.active]="filterDepartureTime() === 'morning'" (click)="filterDepartureTime.set('morning')">
+            <span class="material-symbols-outlined">wb_sunny</span> Morning
+          </button>
+          <button class="filter-time-btn" [class.active]="filterDepartureTime() === 'afternoon'" (click)="filterDepartureTime.set('afternoon')">
+            <span class="material-symbols-outlined">light_mode</span> Afternoon
+          </button>
+          <button class="filter-time-btn" [class.active]="filterDepartureTime() === 'evening'" (click)="filterDepartureTime.set('evening')">
+            <span class="material-symbols-outlined">wb_twilight</span> Evening
+          </button>
+          <button class="filter-time-btn" [class.active]="filterDepartureTime() === 'night'" (click)="filterDepartureTime.set('night')">
+            <span class="material-symbols-outlined">nights_stay</span> Night
+          </button>
+        </div>
+      </div>
+
+      <!-- Status -->
+      <div class="filter-group">
+        <div class="filter-group-label">FLIGHT STATUS</div>
+        <label class="filter-check">
+          <input type="checkbox" [ngModel]="filterStatusScheduled()" (ngModelChange)="filterStatusScheduled.set($event)" />
+          <span>Scheduled</span>
+        </label>
+        <label class="filter-check">
+          <input type="checkbox" [ngModel]="filterStatusDelayed()" (ngModelChange)="filterStatusDelayed.set($event)" />
+          <span>Delayed</span>
+        </label>
+      </div>
+    </aside>
+
+    <!-- Results -->
+    <section class="results-section">
+      <div class="results-header">
+        <div>
+          <h2 class="font-headline results-title">{{ flights.length }} Flights Found</h2>
+          <p class="results-sub" *ngIf="source() && destination()">{{ source() }} to {{ destination() }} • {{ departureDate() }}</p>
+        </div>
+        <div class="sort-control">
+          <select [ngModel]="sortOrder()" (ngModelChange)="sortOrder.set($event)" class="sort-select">
+            <option value="price_asc">Sort by Price: Lowest to Highest</option>
+            <option value="price_desc">Sort by Price: Highest to Lowest</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Flight Cards -->
+      <div class="flight-cards" *ngIf="!loading()">
+        <div class="flight-card" *ngFor="let f of flights; let i = index" [class.featured]="i === 0">
+          <div class="card-grid">
+            <!-- Airline Info -->
+            <div class="flight-info">
+              <div class="airline-icon" [class.featured-icon]="i === 0">
+                <span class="material-symbols-outlined" [class.icon-filled]="i === 0">flight</span>
+              </div>
+              <div>
+                <h4 class="airline-name">{{ f.flightNumber }}</h4>
+                <p class="aircraft-info">{{ f.aircraft }}</p>
+              </div>
+            </div>
+
+            <!-- Timeline -->
+            <div class="flight-timeline">
+              <div class="time-block">
+                <div class="time-value">{{ formatTime(f.departureTime) }}</div>
+                <div class="time-code">{{ f.source }}</div>
+              </div>
+              <div class="timeline-line">
+                <span class="duration">{{ getDuration(f.departureTime, f.arrivalTime) }}</span>
+                <div class="line-track">
+                  <div class="line-fill" [class.active]="i === 0"></div>
+                  <div class="dot dot-left"></div>
+                  <div class="dot dot-right"></div>
+                </div>
+                <span class="stops" [class.active-text]="i === 0">{{ f.status }}</span>
+              </div>
+              <div class="time-block text-right-m">
+                <div class="time-value">{{ formatTime(f.arrivalTime) }}</div>
+                <div class="time-code">{{ f.destination }}</div>
+              </div>
+            </div>
+
+            <!-- Price & CTA -->
+            <div class="flight-cta">
+              <div class="seats-info">
+                <span>{{ f.availableSeats }} seats available</span>
+                <span class="price-info" style="font-weight: 500; font-size: 1.1rem; color: #1e293b; margin-bottom: 0.5rem; display: block;">Starting from {{ getCalculatedPrice(f) | currency:'INR':'symbol' }}</span>
+              </div>
+              <button (click)="bookFlight(f.id)" class="select-btn" [class.select-btn-featured]="i === 0">
+                Select Flight
+              </button>
+              <span class="seat-badge" *ngIf="f.availableSeats < 10">
+                <span class="material-symbols-outlined">event_seat</span>
+                Only {{ f.availableSeats }} seats left
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Loading state -->
+      <div class="loading-state" *ngIf="loading()">
+        <span class="material-symbols-outlined animate-pulse">flight</span>
+        <p>Searching flights...</p>
+      </div>
+
+      <!-- Empty state -->
+      <div class="empty-state" *ngIf="!loading() && flights.length === 0">
+        <span class="material-symbols-outlined">search_off</span>
+        <p>No flights found. Try different search criteria.</p>
+      </div>
+    </section>
+  </div>
+</main>
+
+<!-- Footer -->
+<footer class="site-footer" *ngIf="hasSearched()">
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <span class="font-headline footer-logo">SkyLedger</span>
+      <p class="footer-desc">The world's most advanced airline management and flight booking engine.</p>
+    </div>
+    <div class="footer-links">
+      <h5>Quick Links</h5>
+      <ul><li><a href="#">Flight Status</a></li><li><a href="#">Manage Booking</a></li><li><a href="#">Check-in</a></li></ul>
+    </div>
+    <div class="footer-links">
+      <h5>Support</h5>
+      <ul><li><a href="#">Help Center</a></li><li><a href="#">Privacy Policy</a></li><li><a href="#">Contact Us</a></li></ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2024 SkyLedger Aviation Group</span>
+  </div>
+</footer>

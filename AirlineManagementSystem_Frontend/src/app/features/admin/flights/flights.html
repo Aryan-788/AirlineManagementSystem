@@ -1,0 +1,113 @@
+<app-top-navbar></app-top-navbar>
+<app-side-navbar subtitle="Admin Console" [navItems]="sideNavItems"></app-side-navbar>
+
+<main class="admin-main">
+  <header class="page-hdr">
+    <div>
+      <h1 class="font-headline pg-title">Fleet Control</h1>
+      <p class="pg-sub">Manage flights, schedules, and fleet operations</p>
+    </div>
+    <button class="add-flight-btn" (click)="toggleForm()">
+      <span class="material-symbols-outlined">{{ showForm() ? 'close' : 'add' }}</span>
+      {{ showForm() ? 'Cancel' : 'Add Flight' }}
+    </button>
+  </header>
+
+  <div class="fleet-layout">
+    <!-- Flight Table -->
+    <section class="fleet-table-section">
+      <div class="ft-header">
+        <div>
+          <h3 class="font-headline ft-title">Flight Registry</h3>
+          <p class="ft-sub">All scheduled, active and historical flights</p>
+        </div>
+      </div>
+      <div class="ft-wrap">
+        <table>
+          <thead>
+            <tr><th>FLIGHT NO</th><th>ROUTE</th><th>DEPARTURE</th><th>AIRCRAFT</th><th>GATE</th><th>SEATS</th><th>STATUS</th><th>ACTIONS</th></tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let f of flights()">
+              <td><span class="fn-code">{{ f.flightNumber }}</span></td>
+              <td>{{ f.source }} → {{ f.destination }}</td>
+              <td class="text-muted">{{ f.departureTime | date:'short' }}</td>
+              <td><span class="ac-badge">{{ f.aircraft }}</span></td>
+              <td>{{ f.gate || 'TBD' }}</td>
+              <td><span class="seats-count">{{ f.availableSeats }}/{{ f.totalSeats }}</span></td>
+              <td><span class="status-tag" [ngClass]="getStatusClass(f.status)">{{ f.status }}</span></td>
+              <td class="actions-cell">
+                <button class="action-mini" title="Edit Flight" (click)="editFlight(f)">
+                    <span class="material-symbols-outlined">edit</span>
+                </button>
+                <button class="action-mini amber" title="Assign Gate/Delay" style="margin-left: 0.5rem;" (click)="assignGate(f.id)">
+                    <span class="material-symbols-outlined">more_horiz</span>
+                </button>
+                <button class="action-mini red" title="Cancel Flight" style="margin-left: 0.5rem;" (click)="cancelFlight(f.id)">
+                    <span class="material-symbols-outlined">block</span>
+                </button>
+                <button class="action-mini red" title="Delete" style="margin-left: 0.5rem;" (click)="deleteFlight(f.id)"><span class="material-symbols-outlined">delete</span></button>
+              </td>
+            </tr>
+            <tr *ngIf="flights().length === 0 && !loading()"><td colspan="8" class="empty-cell">No flights in the system</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Create Form / Activity Log -->
+    <aside class="fleet-aside">
+      <!-- Create Flight Form -->
+      <div class="form-card" *ngIf="showForm()">
+        <h3 class="font-headline form-card-title">
+          <span class="material-symbols-outlined">{{ editingFlight() ? 'edit' : 'add_circle' }}</span> 
+          {{ editingFlight() ? 'Edit Flight' : 'Create Flight' }}
+        </h3>
+        <form class="cf-form" (ngSubmit)="saveFlight()">
+          <div class="cf-group"><label>FLIGHT NUMBER</label><input type="text" placeholder="GA-101" [ngModel]="flightNumber()" (ngModelChange)="flightNumber.set($event)" name="fn" /></div>
+          <div class="cf-row">
+            <div class="cf-group"><label>SOURCE</label><input type="text" placeholder="NYC" [ngModel]="source()" (ngModelChange)="source.set($event)" name="s" /></div>
+            <div class="cf-group"><label>DESTINATION</label><input type="text" placeholder="LAX" [ngModel]="destination()" (ngModelChange)="destination.set($event)" name="d" /></div>
+          </div>
+          <div class="cf-row">
+            <div class="cf-group"><label>DEPARTURE</label><input type="datetime-local" [ngModel]="departureTime()" (ngModelChange)="departureTime.set($event)" name="dt" /></div>
+            <div class="cf-group"><label>ARRIVAL</label><input type="datetime-local" [ngModel]="arrivalTime()" (ngModelChange)="arrivalTime.set($event)" name="at" /></div>
+          </div>
+          <div class="cf-group"><label>AIRCRAFT</label><input type="text" placeholder="Boeing 787" [ngModel]="aircraft()" (ngModelChange)="aircraft.set($event)" name="ac" /></div>
+          <div class="cf-row">
+            <div class="cf-group"><label>TOTAL SEATS</label><input type="number" [ngModel]="totalSeats()" (ngModelChange)="totalSeats.set($event)" name="ts" /></div>
+            <div class="cf-group"><label>ECONOMY</label><input type="number" [ngModel]="economySeats()" (ngModelChange)="economySeats.set($event)" name="es" /></div>
+          </div>
+          <div class="cf-row">
+            <div class="cf-group"><label>BUSINESS</label><input type="number" [ngModel]="businessSeats()" (ngModelChange)="businessSeats.set($event)" name="bs" /></div>
+            <div class="cf-group"><label>FIRST CLASS</label><input type="number" [ngModel]="firstSeats()" (ngModelChange)="firstSeats.set($event)" name="fs" /></div>
+          </div>
+          <div class="cf-divider">Pricing (₹)</div>
+          <div class="cf-row">
+            <div class="cf-group"><label>ECONOMY PRICE</label><input type="number" [ngModel]="economyPrice()" (ngModelChange)="economyPrice.set($event)" name="ep" placeholder="3500" /></div>
+            <div class="cf-group"><label>BUSINESS PRICE</label><input type="number" [ngModel]="businessPrice()" (ngModelChange)="businessPrice.set($event)" name="bp" placeholder="9000" /></div>
+          </div>
+          <div class="cf-group">
+            <label>FIRST CLASS PRICE</label>
+            <input type="number" [ngModel]="firstClassPrice()" (ngModelChange)="firstClassPrice.set($event)" name="fp" placeholder="18000" />
+          </div>
+          <button type="submit" class="cf-submit" [disabled]="saving()">{{ saving() ? 'Saving...' : (editingFlight() ? 'Update Flight' : 'Create Flight') }}</button>
+        </form>
+      </div>
+
+      <!-- Activity Log -->
+      <div class="activity-card">
+        <h3 class="font-headline act-title"><span class="material-symbols-outlined">schedule</span> Activity Log</h3>
+        <div class="act-list">
+          <div class="act-item" *ngFor="let a of activityLog">
+            <div class="act-dot" [style.background]="a.color"></div>
+            <div class="act-body">
+              <p class="act-msg">{{ a.msg }}</p>
+              <span class="act-time">{{ a.time }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </div>
+</main>

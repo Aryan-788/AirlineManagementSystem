@@ -1,0 +1,101 @@
+<app-top-navbar></app-top-navbar>
+<app-side-navbar subtitle="Passenger Hub" [navItems]="sideNavItems"></app-side-navbar>
+
+<main class="rw-main">
+  <!-- Header -->
+  <header class="rw-header">
+    <h1 class="font-headline rw-title">Rewards & Benefits</h1>
+    <p class="rw-subtitle">Manage your SkyMiles and unlock exclusive member perks.</p>
+  </header>
+
+  <!-- Bento Grid -->
+  <div class="rw-bento">
+
+    <!-- Hero Balance Card -->
+    <div class="rw-balance-card">
+      <div class="rw-balance-bg"></div>
+      <div class="rw-balance-content">
+        <div>
+          <span class="rw-balance-eyebrow">Current Balance</span>
+          <div class="rw-balance-value">
+            <span class="font-headline rw-balance-num">{{ rewardBalance().totalPoints | number }}</span>
+            <span class="rw-balance-unit">SkyMiles</span>
+          </div>
+        </div>
+        <div class="rw-balance-actions">
+          <button class="rw-btn-primary">Redeem Now</button>
+          <button class="rw-btn-secondary">Apply to Booking</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Member Tier Card -->
+    <div class="rw-tier-card">
+      <span class="material-symbols-outlined rw-tier-icon">stars</span>
+      <h3 class="font-headline rw-tier-name">{{ memberTier }} Tier</h3>
+      <p class="rw-tier-desc">{{ ptsToNextTier | number }} miles away from {{ nextTier }} status.</p>
+      <div class="rw-progress-wrap">
+        <div class="rw-progress-bar">
+          <div class="rw-progress-fill" [style.width.%]="progressPercent"></div>
+        </div>
+        <div class="rw-progress-labels">
+          <span>{{ progressPercent }}% Progress</span>
+          <span>{{ nextTier }}</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Exclusive Perks -->
+  <section class="rw-perks-section">
+    <div class="rw-perks-header">
+      <h2 class="font-headline rw-perks-title">Exclusive Perks</h2>
+      <p class="rw-perks-sub">Redeem your SkyMiles for these premium benefits</p>
+    </div>
+    <div class="rw-perks-grid">
+      <div class="rw-perk-card" *ngFor="let perk of perks">
+        <div class="rw-perk-top">
+          <div class="rw-perk-icon">
+            <span class="material-symbols-outlined">{{ perk.icon }}</span>
+          </div>
+          <span class="rw-perk-badge" *ngIf="perk.badge">{{ perk.badge }}</span>
+        </div>
+        <h4 class="rw-perk-title">{{ perk.title }}</h4>
+        <p class="rw-perk-desc">{{ perk.desc }}</p>
+        <div class="rw-perk-footer">
+          <div class="rw-perk-cost">
+            <span class="material-symbols-outlined">stars</span>
+            {{ perk.cost | number }} miles
+          </div>
+          <button class="rw-perk-btn" [disabled]="rewardBalance().totalPoints < perk.cost">Claim</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How it Works -->
+  <section class="rw-how-section">
+    <h2 class="font-headline rw-how-title">How SkyMiles Work</h2>
+    <div class="rw-how-grid">
+      <div class="rw-how-card">
+        <div class="rw-how-num">1</div>
+        <span class="material-symbols-outlined rw-how-icon">flight_takeoff</span>
+        <h4>Book a Flight</h4>
+        <p>Every booking earns you SkyMiles based on distance and class.</p>
+      </div>
+      <div class="rw-how-card">
+        <div class="rw-how-num">2</div>
+        <span class="material-symbols-outlined rw-how-icon">stars</span>
+        <h4>Earn Miles</h4>
+        <p>Economy earns 1x, Business 2x, and First Class 3x multiplier.</p>
+      </div>
+      <div class="rw-how-card">
+        <div class="rw-how-num">3</div>
+        <span class="material-symbols-outlined rw-how-icon">card_giftcard</span>
+        <h4>Redeem Perks</h4>
+        <p>Use your miles for upgrades, lounges, baggage and more.</p>
+      </div>
+    </div>
+  </section>
+</main>

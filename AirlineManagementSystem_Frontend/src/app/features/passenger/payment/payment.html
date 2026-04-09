@@ -1,0 +1,88 @@
+<app-top-navbar></app-top-navbar>
+<main class="pay-main" *ngIf="booking()">
+  <div class="pay-grid">
+    <!-- Left: Payment Form -->
+    <div class="pay-left">
+      <section>
+        <h1 class="font-headline pay-title">Finalize Your Journey</h1>
+        <p class="pay-sub">Review your flight details and complete the secure payment.</p>
+      </section>
+
+      <!-- Payment Form Card -->
+      <div class="pay-card" *ngIf="!paymentSuccess()">
+        <form class="pay-form" (ngSubmit)="processPayment()">
+          <div class="billing-summary" style="background: var(--surface-container-lowest); padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem; border: 1px solid var(--outline-variant);">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
+              <span style="color: var(--on-surface-variant); font-weight: 500;">Booking PNR</span>
+              <span style="font-weight: 700;">{{ booking()!.pnr }}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
+              <span style="color: var(--on-surface-variant); font-weight: 500;">Gateway</span>
+              <span style="font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 0.25rem;">
+                <span class="material-symbols-outlined" style="font-size: 1.125rem;">lock</span>
+                RazorPay Secure Checkout
+              </span>
+            </div>
+            <hr style="border: none; border-top: 1px dashed var(--outline-variant); margin: 1rem 0;" />
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-size: 1.125rem; font-weight: 700;">Total Amount</span>
+              <span style="font-size: 1.5rem; font-weight: 800; color: #10b981;">{{ booking()?.totalAmount | currency:'INR':'symbol' }}</span>
+            </div>
+          </div>
+
+          <button type="submit" class="pay-btn font-headline" [disabled]="loading()">
+            {{ loading() ? 'Connecting to Gateway...' : 'Pay with RazorPay' }}
+          </button>
+        </form>
+      </div>
+
+      <!-- Success Message -->
+      <div class="success-card" *ngIf="paymentSuccess()">
+        <div class="success-icon"><span class="material-symbols-outlined">check</span></div>
+        <div>
+          <h3 class="font-headline success-title">Payment Confirmed</h3>
+          <p class="success-desc">Your booking {{ booking()!.pnr }} is successfully processed.</p>
+          <button class="view-pass-btn" routerLink="/passenger/dashboard">View Dashboard</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Boarding Pass -->
+    <div class="pay-right">
+      <div class="boarding-pass-wrapper">
+        <div class="boarding-pass">
+          <!-- Header -->
+          <div class="bp-header">
+            <div class="bp-top-row">
+              <span class="bp-airline">SkyLedger</span>
+              <span class="bp-class">{{ booking()!.seatClass }}</span>
+            </div>
+            <div class="bp-route">
+              <div class="bp-city"><h2 class="font-headline">{{ booking()!.pnr }}</h2><p>PNR Code</p></div>
+              <div class="bp-flight-icon">
+                <div class="bp-line"></div>
+                <span class="material-symbols-outlined">flight</span>
+              </div>
+              <div class="bp-city right"><h2 class="font-headline">{{ booking()!.seatClass }}</h2><p>Class</p></div>
+            </div>
+          </div>
+          <!-- Content -->
+          <div class="bp-content">
+            <div class="bp-details">
+              <div><p class="bp-label">Passengers</p><p class="bp-value font-headline">{{ booking()!.totalPassengers || 1 }} Pax</p></div>
+              <div class="right"><p class="bp-label">Booking</p><p class="bp-value font-headline">#{{ booking()!.id }}</p></div>
+              <div><p class="bp-label">Status</p><p class="bp-value font-headline">{{ booking()!.status }}</p></div>
+              <div class="right"><p class="bp-label">Flight</p><p class="bp-value font-headline">{{ flight()?.flightNumber || '...' }}</p></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Security Note -->
+      <div class="security-note">
+        <span class="material-symbols-outlined">verified_user</span>
+        <span>Your connection is secured with 256-bit military-grade encryption.</span>
+      </div>
+    </div>
+  </div>
+</main>

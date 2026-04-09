@@ -1,0 +1,206 @@
+<app-top-navbar></app-top-navbar>
+<app-side-navbar subtitle="Admin Console" [navItems]="sideNavItems"></app-side-navbar>
+
+<main class="admin-main">
+  <header class="page-hdr">
+    <div>
+      <h1 class="font-headline pg-title">Flight Scheduling</h1>
+      <p class="pg-sub">Manage dynamic flight schedules and instances</p>
+    </div>
+    <div style="display: flex; gap: 1rem; align-items: center;">
+      <select class="flight-filter" [ngModel]="filterFlightId()" (ngModelChange)="filterFlightId.set(+$event || null)">
+        <option [value]="null">All Flights</option>
+        <option *ngFor="let f of flights()" [value]="f.id">{{ f.flightNumber }} ({{ f.source }} - {{ f.destination }})</option>
+      </select>
+      
+      <button class="add-flight-btn" (click)="toggleForm()">
+        <span class="material-symbols-outlined">{{ showForm() ? 'close' : 'add' }}</span>
+        {{ showForm() ? 'Cancel' : 'New Schedule' }}
+      </button>
+    </div>
+  </header>
+
+  <div class="fleet-layout">
+    <!-- Schedule Table -->
+    <section class="fleet-table-section">
+      <div class="ft-wrap">
+        <table>
+          <thead>
+            <tr><th>FLIGHT</th><th>DEPARTURE</th><th>ARRIVAL</th><th>GATE</th><th>SEATS (AVAIL)</th><th>STATUS</th><th>ACTIONS</th></tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let s of filteredSchedules()">
+              <td>
+                <span class="fn-code" style="display: block;">{{ s.flightNumber }}</span>
+                <small class="route-small">{{ s.source }} → {{ s.destination }}</small>
+              </td>
+              <td>{{ s.departureTime | date:'medium' }}</td>
+              <td>{{ s.arrivalTime | date:'shortTime' }}</td>
+              <td><span class="gate-badge">{{ s.gate || 'TBD' }}</span></td>
+              <td>
+                <span class="seats-count">{{ s.availableSeats }}/{{ s.totalSeats }}</span>
+              </td>
+              <td><span class="status-tag" [ngClass]="getStatusClass(s.status)">{{ s.status }}</span></td>
+              <td class="actions-cell">
+                <button class="action-mini blue" title="View Manifest" (click)="viewManifest(s)"><span class="material-symbols-outlined">group</span></button>
+                <button class="action-mini" title="Edit Schedule" (click)="editSchedule(s)"><span class="material-symbols-outlined">edit</span></button>
+                <button class="action-mini amber" title="Cancel Schedule" (click)="cancelSchedule(s.id)" *ngIf="s.status !== 'Cancelled' && s.status !== 'Completed'"><span class="material-symbols-outlined">block</span></button>
+                <button class="action-mini red" title="Delete" (click)="deleteSchedule(s.id)"><span class="material-symbols-outlined">delete</span></button>
+              </td>
+            </tr>
+            <tr *ngIf="filteredSchedules().length === 0 && !loading()"><td colspan="7" class="empty-cell">No schedules match current filters</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Create/Edit Form -->
+    <aside class="fleet-aside" *ngIf="showForm()">
+      <div class="form-card">
+        <h3 class="font-headline form-card-title">
+          <span class="material-symbols-outlined">{{ editingSchedule() ? 'edit_calendar' : 'add_circle' }}</span> 
+          {{ editingSchedule() ? 'Edit Schedule' : 'Create Schedule' }}
+        </h3>
+        
+        <form class="cf-form" (ngSubmit)="saveSchedule()">
+          
+          <div class="cf-group" style="margin-bottom: 1rem;" *ngIf="!editingSchedule()">
+            <label>SCHEDULE TYPE</label>
+            <div style="display: flex; gap: 1rem; margin-top: 0.25rem;">
+               <label style="display: flex; align-items: center; gap: 0.25rem; font-weight: normal;"><input type="radio" name="mode" value="single" [ngModel]="scheduleMode()" (ngModelChange)="scheduleMode.set($event)"> Single Flight</label>
+               <label style="display: flex; align-items: center; gap: 0.25rem; font-weight: normal;"><input type="radio" name="mode" value="recurring" [ngModel]="scheduleMode()" (ngModelChange)="scheduleMode.set($event)"> Weekly Recurring</label>
+            </div>
+          </div>
+
+          <div class="cf-group">
+            <label>FLIGHT TEMPLATE</label>
+            <select [ngModel]="flightId()" (ngModelChange)="flightId.set(+$event)" name="fId" [disabled]="editingSchedule() != null" required>
+                <option [value]="0" disabled>Select Flight Template</option>
+                <option *ngFor="let f of flights()" [value]="f.id">{{ f.flightNumber }} ({{ f.source }} - {{ f.destination }})</option>
+            </select>
+          </div>
+
+          <!-- SINGLE MODE INPUTS -->
+          <ng-container *ngIf="scheduleMode() === 'single'">
+            <div class="cf-row">
+              <div class="cf-group"><label>DEPARTURE</label><input type="datetime-local" [ngModel]="departureTime()" (ngModelChange)="departureTime.set($event)" name="dt" [required]="scheduleMode() === 'single'" /></div>
+              <div class="cf-group"><label>ARRIVAL</label><input type="datetime-local" [ngModel]="arrivalTime()" (ngModelChange)="arrivalTime.set($event)" name="at" [required]="scheduleMode() === 'single'" /></div>
+            </div>
+          </ng-container>
+
+          <!-- RECURRING MODE INPUTS -->
+          <ng-container *ngIf="scheduleMode() === 'recurring'">
+            <div class="cf-group">
+              <label>SERVICE FREQUENCY</label>
+              <div class="weekday-selector">
+                <button type="button" [class.active]="selectedDays().includes(1)" (click)="toggleDay(1)">M</button>
+                <button type="button" [class.active]="selectedDays().includes(2)" (click)="toggleDay(2)">T</button>
+                <button type="button" [class.active]="selectedDays().includes(3)" (click)="toggleDay(3)">W</button>
+                <button type="button" [class.active]="selectedDays().includes(4)" (click)="toggleDay(4)">T</button>
+                <button type="button" [class.active]="selectedDays().includes(5)" (click)="toggleDay(5)">F</button>
+                <button type="button" [class.active]="selectedDays().includes(6)" (click)="toggleDay(6)">S</button>
+                <button type="button" [class.active]="selectedDays().includes(0)" (click)="toggleDay(0)">S</button>
+              </div>
+            </div>
+
+            <div class="cf-row">
+              <div class="cf-group"><label>EFFECTIVE FROM</label><input type="date" [ngModel]="effectiveFrom()" (ngModelChange)="effectiveFrom.set($event)" name="ef" [required]="scheduleMode() === 'recurring'" /></div>
+              <div class="cf-group"><label>EFFECTIVE TO</label><input type="date" [ngModel]="effectiveTo()" (ngModelChange)="effectiveTo.set($event)" name="et" [required]="scheduleMode() === 'recurring'" /></div>
+            </div>
+
+            <div class="cf-row">
+              <div class="cf-group"><label>DEPARTURE TIME</label><input type="time" [ngModel]="depTimeOnly()" (ngModelChange)="depTimeOnly.set($event)" name="dtOnly" [required]="scheduleMode() === 'recurring'" /></div>
+              <div class="cf-group"><label>ARRIVAL TIME</label><input type="time" [ngModel]="arrTimeOnly()" (ngModelChange)="arrTimeOnly.set($event)" name="atOnly" [required]="scheduleMode() === 'recurring'" /></div>
+            </div>
+          </ng-container>
+          
+          <div class="cf-row">
+            <div class="cf-group"><label>GATE</label><input type="text" placeholder="e.g. B12" [ngModel]="gate()" (ngModelChange)="gate.set($event)" name="g" /></div>
+            <div class="cf-group" *ngIf="editingSchedule()">
+                <label>STATUS</label>
+                <select [ngModel]="status()" (ngModelChange)="status.set($event)" name="st">
+                    <option value="Scheduled">Scheduled</option>
+                    <option value="Boarding">Boarding</option>
+                    <option value="Departed">Departed</option>
+                    <option value="InFlight">In Flight</option>
+                    <option value="Landed">Landed</option>
+                    <option value="Delayed">Delayed</option>
+                    <option value="Cancelled">Cancelled</option>
+                    <option value="Completed">Completed</option>
+                </select>
+            </div>
+          </div>
+
+          <div class="cf-divider">Capacity Overrides (Leave empty to use defaults)</div>
+          
+          <div class="cf-row">
+            <div class="cf-group"><label>ECONOMY SEATS</label><input type="number" [ngModel]="economySeats()" (ngModelChange)="economySeats.set(+$event || null)" name="es" /></div>
+            <div class="cf-group"><label>BUSINESS SEATS</label><input type="number" [ngModel]="businessSeats()" (ngModelChange)="businessSeats.set(+$event || null)" name="bs" /></div>
+          </div>
+          <div class="cf-group"><label>FIRST CLASS SEATS</label><input type="number" [ngModel]="firstSeats()" (ngModelChange)="firstSeats.set(+$event || null)" name="fs" /></div>
+
+          <div class="cf-divider">Pricing Overrides (₹)</div>
+          <div class="cf-row">
+            <div class="cf-group"><label>ECONOMY PRICE</label><input type="number" [ngModel]="economyPrice()" (ngModelChange)="economyPrice.set(+$event || null)" name="ep" /></div>
+            <div class="cf-group"><label>BUSINESS PRICE</label><input type="number" [ngModel]="businessPrice()" (ngModelChange)="businessPrice.set(+$event || null)" name="bp" /></div>
+          </div>
+          <div class="cf-group">
+            <label>FIRST CLASS PRICE</label>
+            <input type="number" [ngModel]="firstClassPrice()" (ngModelChange)="firstClassPrice.set(+$event || null)" name="fp" />
+          </div>
+
+          <button type="submit" class="cf-submit" [disabled]="saving()">{{ saving() ? 'Saving...' : (editingSchedule() ? 'Update Schedule' : 'Create Schedule') }}</button>
+        </form>
+      </div>
+    </aside>
+  </div>
+
+  <div class="manifest-modal" *ngIf="manifestSchedule()">
+    <div class="manifest-modal-content">
+      <header class="manifest-hdr">
+        <div style="flex: 1;">
+          <h2 class="font-headline" style="color: var(--primary); display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+            <span class="material-symbols-outlined">group</span> Passenger Manifest
+          </h2>
+          <p class="pg-sub">Flight {{ manifestSchedule()?.flightNumber }} | {{ manifestSchedule()?.source }} → {{ manifestSchedule()?.destination }}</p>
+          <p class="pg-sub" style="font-size: 0.85rem; margin-top: 0.25rem;">Departure: {{ manifestSchedule()?.departureTime | date:'medium':'+0530' }}</p>
+        </div>
+        <button class="close-manifest-btn" (click)="closeManifest()">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </header>
+
+      <div class="manifest-body">
+        <div *ngIf="manifestLoading()" class="loading-state">
+          Loading manifest data...
+        </div>
+
+        <div *ngIf="!manifestLoading()">
+           <div *ngIf="manifestBookings().length === 0" class="empty-state">
+              No passengers booked on this schedule yet.
+           </div>
+
+           <div *ngFor="let b of manifestBookings()" class="booking-group">
+             <div class="bg-header">
+               <span>PNR: <strong>{{ b.pnr }}</strong></span>
+               <span class="status-tag" [ngClass]="getStatusClass(b.status)">{{ b.status }}</span>
+             </div>
+             <table class="manifest-table">
+               <thead>
+                 <tr><th>NAME</th><th>SEAT</th><th>CLASS</th><th>STATUS</th></tr>
+               </thead>
+               <tbody>
+                 <tr *ngFor="let p of b.passengers">
+                   <td>{{ p.name }} <br><small>{{ p.age }}y | {{ p.gender }}</small></td>
+                   <td><span class="gate-badge">{{ p.seat }}</span></td>
+                   <td>{{ b.seatClass }}</td>
+                   <td><span class="status-tag" [ngClass]="p.status === 'Cancelled' ? 'st-red' : 'st-blue'">{{ p.status }}</span></td>
+                 </tr>
+               </tbody>
+             </table>
+           </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>

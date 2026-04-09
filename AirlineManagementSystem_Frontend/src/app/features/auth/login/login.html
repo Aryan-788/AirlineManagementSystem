@@ -1,0 +1,190 @@
+<div class="login-wrapper">
+  <!-- Left Side: Hero Brand Area -->
+  <div class="hero-side">
+    <div class="hero-overlay hero-gradient"></div>
+    <div class="hero-content">
+      <div class="hero-top">
+        <div class="brand-row">
+          <span class="material-symbols-outlined brand-icon">flight_takeoff</span>
+          <h1 class="brand-title font-headline">SKYLEDGER</h1>
+        </div>
+      </div>
+      <div class="hero-text">
+        <p class="hero-headline font-headline">
+          The Global Standard in <span class="highlight">Aviation Operations.</span>
+        </p>
+        <p class="hero-sub">
+          Experience the precision of a digital flight deck. Manage fleet logistics, passenger journeys, and ground operations with editorial-grade clarity.
+        </p>
+      </div>
+      <div class="hero-stats">
+        <div class="stat">
+          <span class="stat-value font-headline">14.2k</span>
+          <span class="stat-label">Active Flights</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value font-headline">99.9%</span>
+          <span class="stat-label">System Uptime</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value font-headline">200+</span>
+          <span class="stat-label">Global Hubs</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Side: Login/Registration Form -->
+  <div class="form-side">
+    <div class="form-container">
+      <!-- Header -->
+      <div class="form-header">
+        <ng-container *ngIf="activeTab() === 'login' || activeTab() === 'register'">
+          <h2 class="font-headline form-title">{{ activeTab() === 'login' ? 'Welcome Back' : 'Create Account' }}</h2>
+          <p class="form-subtitle">{{ activeTab() === 'login' ? 'Please enter your details to access the terminal.' : 'Fill in your information to get started.' }}</p>
+        </ng-container>
+        <ng-container *ngIf="activeTab() === 'register_verify'">
+          <h2 class="font-headline form-title">Verify Email</h2>
+          <p class="form-subtitle">Enter the OTP sent to <b>{{ email() }}</b> to activate your account.</p>
+        </ng-container>
+        <ng-container *ngIf="activeTab() === 'forgot_email' || activeTab() === 'forgot_reset'">
+          <h2 class="font-headline form-title">Reset Password</h2>
+          <p class="form-subtitle">{{ activeTab() === 'forgot_email' ? 'Enter your email to receive an OTP.' : 'Enter the OTP and your new password.' }}</p>
+        </ng-container>
+      </div>
+
+      <!-- Tab Toggle -->
+      <div class="tab-toggle" *ngIf="activeTab() === 'login' || activeTab() === 'register'">
+        <button [class.active]="activeTab() === 'login'" (click)="switchTab('login')">Login</button>
+        <button [class.active]="activeTab() === 'register'" (click)="switchTab('register')">Registration</button>
+      </div>
+
+      <!-- Error -->
+      <div class="error-msg" *ngIf="error()">
+        <div>
+          <span class="material-symbols-outlined">error</span>
+          {{ error() }}
+        </div>
+        <button type="button" class="verify-btn-inline" *ngIf="error().includes('verify')" (click)="resendVerification()">Verify Now</button>
+      </div>
+
+      <!-- Success -->
+      <div class="error-msg" *ngIf="success()" style="background: rgba(34, 197, 94, 0.1); color: #16a34a; border-left-color: #16a34a;">
+        <span class="material-symbols-outlined">check_circle</span>
+        {{ success() }}
+      </div>
+
+      <!-- Form -->
+      <form class="auth-form" (ngSubmit)="$event.preventDefault(); activeTab() === 'forgot_email' ? requestPasswordReset() : (activeTab() === 'forgot_reset' ? confirmPasswordReset() : (activeTab() === 'register_verify' ? confirmRegistration() : onSubmit()))">
+        <!-- Role Selection -->
+        <div class="field" *ngIf="activeTab() === 'register'">
+          <label>ACCESS ROLE</label>
+          <div class="select-wrapper">
+            <select [(ngModel)]="role" name="role" [ngModelOptions]="{standalone: true}" (ngModelChange)="role.set($event)">
+              <option value="Passenger">Passenger</option>
+              <option value="Dealer">Fleet Dealer</option>
+              <option value="GroundStaff">Ground Staff</option>
+            </select>
+            <span class="material-symbols-outlined select-icon">expand_more</span>
+          </div>
+        </div>
+
+        <!-- Name Field (Register only) -->
+        <div class="field" *ngIf="activeTab() === 'register'">
+          <label>FULL NAME</label>
+          <input type="text" placeholder="John Doe" [ngModel]="name()" (ngModelChange)="name.set($event)" name="name" [required]="activeTab() === 'register'" />
+        </div>
+
+        <!-- Email Field -->
+        <div class="field" *ngIf="activeTab() !== 'forgot_reset' && activeTab() !== 'register_verify'">
+          <label>EMAIL ADDRESS</label>
+          <input type="email" placeholder="name@airline.com" [ngModel]="email()" (ngModelChange)="email.set($event)" name="email" [required]="activeTab() !== 'forgot_reset' && activeTab() !== 'register_verify'" [disabled]="(activeTab() === 'forgot_email' || activeTab() === 'register_verify') && loading()" />
+        </div>
+
+        <!-- Verification OTP Field -->
+        <div class="field" *ngIf="activeTab() === 'register_verify'">
+          <label>REGISTRATION OTP</label>
+          <input type="text" placeholder="123456" [ngModel]="verifyToken()" (ngModelChange)="verifyToken.set($event)" name="verifyToken" [required]="activeTab() === 'register_verify'" />
+        </div>
+
+        <!-- OTP Field (Reset Password) -->
+        <div class="field" *ngIf="activeTab() === 'forgot_reset'">
+          <label>6-DIGIT OTP</label>
+          <input type="text" placeholder="123456" [ngModel]="resetToken()" (ngModelChange)="resetToken.set($event)" name="resetToken" [required]="activeTab() === 'forgot_reset'" />
+        </div>
+
+        <!-- New Password Field (Reset Password) -->
+        <div class="field" *ngIf="activeTab() === 'forgot_reset'">
+          <label>NEW PASSWORD</label>
+          <input type="password" placeholder="••••••••" [ngModel]="newPassword()" (ngModelChange)="newPassword.set($event)" name="newPassword" [required]="activeTab() === 'forgot_reset'" />
+        </div>
+
+        <!-- Confirm Password Field (Reset Password) -->
+        <div class="field" *ngIf="activeTab() === 'forgot_reset'">
+          <label>CONFIRM NEW PASSWORD</label>
+          <input type="password" placeholder="••••••••" [ngModel]="confirmPassword()" (ngModelChange)="confirmPassword.set($event)" name="confirmPassword" [required]="activeTab() === 'forgot_reset'" />
+        </div>
+
+        <!-- Password Field (Login/Register) -->
+        <div class="field" *ngIf="activeTab() === 'login' || activeTab() === 'register'">
+          <div class="field-header">
+            <label>PASSWORD</label>
+            <a href="javascript:void(0)" class="forgot-link" *ngIf="activeTab() === 'login'" (click)="switchTab('forgot_email')">Forgot Password?</a>
+          </div>
+          <input type="password" placeholder="••••••••" [ngModel]="password()" (ngModelChange)="password.set($event)" name="password" [required]="activeTab() === 'login' || activeTab() === 'register'" />
+        </div>
+
+        <!-- Remember Me -->
+        <div class="remember-row" *ngIf="activeTab() === 'login'">
+          <label class="checkbox-label">
+            <input type="checkbox" />
+            <span>Remember device for 30 days</span>
+          </label>
+        </div>
+        
+        <!-- Back to login (Forgot password flow) -->
+        <div class="remember-row" *ngIf="activeTab() === 'forgot_email' || activeTab() === 'forgot_reset' || activeTab() === 'register_verify'" style="display: flex; flex-direction: column; align-items: center; gap: 8px; margin-bottom: 24px;">
+          <a href="javascript:void(0)" class="forgot-link" (click)="switchTab('login')">Back to Login</a>
+          <a href="javascript:void(0)" class="forgot-link" style="color: #64748b; font-weight: 500;" (click)="resendVerification()">Didn't get the code? Resend</a>
+        </div>
+
+        <!-- CTA Button -->
+        <button type="submit" class="submit-btn font-headline" [disabled]="loading()">
+          <ng-container *ngIf="loading()">Processing...</ng-container>
+          <ng-container *ngIf="!loading()">
+            {{ activeTab() === 'login' ? 'Authorize Access' : 
+               activeTab() === 'register' ? 'Create Account' : 
+               activeTab() === 'register_verify' ? 'Verify Account' :
+               activeTab() === 'forgot_email' ? 'Send OTP' : 'Reset Password' }}
+          </ng-container>
+        </button>
+      </form>
+
+      <div class="auth-divider" *ngIf="activeTab() === 'login' || activeTab() === 'register'">
+        <span>Or continue with</span>
+      </div>
+
+      <div class="social-login" *ngIf="activeTab() === 'login' || activeTab() === 'register'">
+        <button type="button" class="btn-social" (click)="loginWithOAuth('oauth_google')">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google" />
+          Google
+        </button>
+        <button type="button" class="btn-social" (click)="loginWithOAuth('oauth_facebook')">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/b/bd/Facebook_Logo_2023.png" alt="Facebook" style="width: 20px; height: 20px;" />
+          Facebook
+        </button>
+        <button type="button" class="btn-social" (click)="loginWithOAuth('oauth_github')">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/9/91/Octicons-mark-github.svg" alt="GitHub" />
+          GitHub
+        </button>
+      </div>
+
+      <!-- Footer -->
+      <div class="form-footer">
+        <p>
+          By signing in, you agree to our <a href="javascript:void(0)">Terms of Service</a> and <a href="javascript:void(0)">Security Protocol</a>.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>

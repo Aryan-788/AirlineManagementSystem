@@ -1,0 +1,277 @@
+<app-top-navbar></app-top-navbar>
+<app-side-navbar subtitle="Passenger Hub" [navItems]="sideNavItems"></app-side-navbar>
+
+<main class="main-content">
+  <!-- Header -->
+  <header class="page-header">
+    <div>
+      <h1 class="font-headline page-title">Welcome back, {{ authService.userName() }}.</h1>
+      <p class="page-subtitle">Your flight readiness dashboard.</p>
+    </div>
+    <div class="reward-card">
+      <div class="reward-icon">
+        <span class="material-symbols-outlined">loyalty</span>
+      </div>
+      <div>
+        <div class="reward-label">Reward Points</div>
+        <div class="reward-value">{{ rewardBalance().totalPoints | number }} <span>PTS</span></div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Metrics Grid -->
+  <div class="metrics-grid">
+    <!-- Upcoming Trip Card -->
+    <div class="metric-card trip-card" *ngIf="nextDeparture()">
+      <div class="trip-header">
+        <span class="trip-badge">Next Departure</span>
+      </div>
+      <div class="trip-route">
+        <div class="trip-airport">
+          <div class="airport-code font-headline">{{ nextDeparture()?.pnr || 'N/A' }}</div>
+          <div class="airport-label">PNR</div>
+        </div>
+        <div class="trip-line">
+          <div class="line"></div>
+          <span class="material-symbols-outlined flight-icon">flight</span>
+        </div>
+        <div class="trip-airport">
+          <div class="airport-code font-headline">{{ nextDeparture()?.seatClass || 'ECO' }}</div>
+          <div class="airport-label">Class</div>
+        </div>
+      </div>
+      <div class="trip-footer">
+        <div>
+          <div class="trip-flight">Booking #{{ nextDeparture()?.id }}</div>
+          <div class="trip-status">{{ nextDeparture()?.status }}</div>
+        </div>
+        <a routerLink="/passenger/search" class="checkin-btn">Book More</a>
+      </div>
+      <div class="trip-bg-icon">
+        <span class="material-symbols-outlined">flight_takeoff</span>
+      </div>
+    </div>
+
+    <!-- Total Bookings -->
+    <div class="metric-card stat-card">
+      <div class="stat-header">
+        <div class="stat-icon blue"><span class="material-symbols-outlined">calendar_month</span></div>
+        <span class="stat-badge green">+{{ bookings().length }}</span>
+      </div>
+      <div class="stat-body">
+        <div class="stat-number font-headline">{{ bookings().length }}</div>
+        <div class="stat-label">Total Bookings</div>
+      </div>
+    </div>
+
+    <!-- Notifications -->
+    <div class="metric-card stat-card alert-card" *ngIf="notifications().length > 0">
+      <div class="stat-header">
+        <div class="stat-icon red"><span class="material-symbols-outlined">notifications_active</span></div>
+        <span class="stat-badge red">{{ notifications().length }} New</span>
+      </div>
+      <div class="stat-body">
+        <div class="stat-number font-headline">{{ notifications().length }}</div>
+        <div class="stat-label">Notifications</div>
+      </div>
+    </div>
+    <div class="metric-card stat-card" *ngIf="notifications().length === 0">
+      <div class="stat-header">
+        <div class="stat-icon green"><span class="material-symbols-outlined">check_circle</span></div>
+      </div>
+      <div class="stat-body">
+        <div class="stat-number font-headline">0</div>
+        <div class="stat-label">Pending Alerts</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Actions & Alerts -->
+  <div class="actions-row">
+    <div class="actions-panel">
+      <h2 class="section-title">
+        <span class="material-symbols-outlined">bolt</span> Quick Flight Deck
+      </h2>
+      <div class="actions-grid">
+        <a routerLink="/passenger/search" class="action-card">
+          <div class="action-icon"><span class="material-symbols-outlined">travel_explore</span></div>
+          <div class="action-label">Search Flights</div>
+        </a>
+        <a routerLink="/passenger/my-bookings" class="action-card">
+          <div class="action-icon"><span class="material-symbols-outlined">confirmation_number</span></div>
+          <div class="action-label">My Bookings</div>
+        </a>
+        <a routerLink="/passenger/check-in" class="action-card">
+          <div class="action-icon"><span class="material-symbols-outlined">how_to_reg</span></div>
+          <div class="action-label">Online Check-In</div>
+        </a>
+        <a routerLink="/passenger/rewards" class="action-card">
+          <div class="action-icon"><span class="material-symbols-outlined">stars</span></div>
+          <div class="action-label">Rewards Shop</div>
+        </a>
+      </div>
+    </div>
+
+    <!-- Notification Sidebar -->
+    <div class="alerts-panel" *ngIf="notifications().length > 0">
+      <div class="alerts-header">
+        <h2 class="section-title-sm">Air Traffic Alerts</h2>
+      </div>
+      <div class="alerts-list">
+        <div class="alert-item" *ngFor="let n of notifications()">
+          <span class="material-symbols-outlined alert-icon">info</span>
+          <div>
+            <div class="alert-title">{{ n.subject }}</div>
+            <div class="alert-body">{{ n.message }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Bookings Table -->
+  <section class="table-section">
+    <div class="table-header">
+      <div>
+        <h2 class="section-title">Recent Flight Itineraries</h2>
+        <p class="section-subtitle">Manage your confirmed and pending bookings</p>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Booking</th>
+            <th>Class</th>
+            <th>Status</th>
+            <th>PNR</th>
+            <th class="text-right">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let b of bookings()">
+            <td>
+              <div class="booking-cell">
+                <div class="booking-icon"><span class="material-symbols-outlined">flight</span></div>
+                <div>
+                  <div class="booking-id">#{{ b.id }}</div>
+                  <div class="booking-name">{{ b.totalPassengers || 1 }} Passengers</div>
+                </div>
+              </div>
+            </td>
+            <td class="cell-bold">{{ b.seatClass }}</td>
+            <td>
+              <span class="status-badge" [ngClass]="getStatusClass(b.status)">{{ b.status }}</span>
+            </td>
+            <td class="cell-mono">{{ b.pnr }}</td>
+            <td class="text-right">
+              <a [routerLink]="['/passenger/booking', b.flightId]" class="detail-link" *ngIf="b.status === 'Pending'">Complete</a>
+              <span class="detail-link" *ngIf="b.status === 'Confirmed'" (click)="viewBooking(b)">View</span>
+              <span class="detail-link red" *ngIf="b.status === 'Cancelled'">Refund</span>
+            </td>
+          </tr>
+          <tr *ngIf="bookings().length === 0 && !loading()">
+            <td colspan="5" class="empty-state">No bookings found. <a routerLink="/passenger/search">Search flights</a> to get started!</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<!-- Booking Details Modal -->
+<div class="modal-overlay" *ngIf="showModal()" (click)="closeModal()">
+  <div class="modal-container" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="font-headline">Booking Itinerary</h2>
+      <button class="close-btn" (click)="closeModal()">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+
+    <div class="modal-content" *ngIf="selectedBooking()">
+      <div class="modal-pnr-section">
+        <label>PNR Reference</label>
+        <p class="modal-pnr">{{ selectedBooking()!.pnr }}</p>
+      </div>
+
+      <div class="modal-body">
+        <div class="modal-loading-overlay" *ngIf="modalLoading()">
+          <span class="loader"></span>
+        </div>
+
+        <!-- Flight Journey Section -->
+        <div class="flight-journey-card" *ngIf="selectedFlight()">
+          <div class="journey-row">
+            <div class="journey-point">
+              <div class="jp-code">{{ selectedFlight()?.source }}</div>
+              <div class="jp-name">{{ selectedFlight()?.source || 'Origin' }}</div>
+              <div class="jp-time">{{ selectedFlight()?.departureTime | date:'shortTime' }}</div>
+            </div>
+            
+            <div class="journey-path">
+              <div class="jp-flight-info">
+                <span class="jp-flight-no">{{ selectedFlight()?.flightNumber }}</span>
+                <div class="jp-line">
+                  <div class="jp-dot"></div>
+                  <div class="jp-connector"></div>
+                  <span class="material-symbols-outlined jp-icon">flight</span>
+                  <div class="jp-connector"></div>
+                  <div class="jp-dot gray"></div>
+                </div>
+                <span class="jp-duration">{{ getDuration(selectedFlight()!.departureTime, selectedFlight()!.arrivalTime) }} Duration</span>
+              </div>
+            </div>
+
+            <div class="journey-point text-right">
+              <div class="jp-code">{{ selectedFlight()?.destination }}</div>
+              <div class="jp-name">{{ selectedFlight()?.destination || 'Destination' }}</div>
+              <div class="jp-time">{{ selectedFlight()?.arrivalTime | date:'shortTime' }}</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-grid">
+          <div class="m-info-group">
+            <label>Baggage Allowance</label>
+            <p>{{ selectedBooking()?.baggageWeight }} KG</p>
+          </div>
+          <div class="m-info-group">
+            <label>Booking Date</label>
+            <p>{{ selectedBooking()?.createdAt | date:'mediumDate' }}</p>
+          </div>
+          <div class="m-info-group">
+            <label>Seat Class</label>
+            <p class="premium-text">{{ selectedBooking()?.seatClass }}</p>
+          </div>
+          <div class="m-info-group">
+            <label>Total Fare</label>
+            <p class="price-text">₹{{ selectedBooking()?.totalAmount | number:'1.2-2' }}</p>
+          </div>
+        </div>
+
+        <div class="modal-passenger-list">
+          <h3 class="font-headline pax-list-title">Passenger Manifest</h3>
+          <table class="modal-table">
+            <thead>
+              <tr>
+                <th>Passenger Name</th>
+                <th>Age/Gender</th>
+                <th>Seat No</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let p of passengersOfBooking()">
+                <td class="p-name">{{ p.name }}</td>
+                <td class="p-meta">{{ p.age }} / {{ p.gender }}</td>
+                <td>
+                  <span class="p-seat">{{ p.seatNumber || 'Auto' }}</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

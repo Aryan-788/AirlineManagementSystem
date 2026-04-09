@@ -1,0 +1,286 @@
+version: '3.8'
+
+networks:
+  airline-network:
+    driver: bridge
+
+volumes:
+  sqlserver-data:
+
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sqlserver
+    restart: always
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=YourPassword123!
+    ports:
+      - "1434:1433"
+    volumes:
+      - sqlserver-data:/var/opt/mssql
+    networks:
+      - airline-network
+
+  redis:
+    image: redis:alpine
+    container_name: redis
+    restart: always
+    ports:
+      - "6379:6379"
+    networks:
+      - airline-network
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    restart: always
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - airline-network
+
+  identity-service:
+    build:
+      context: ./AirlineManagementSystem
+      dockerfile: Services/IdentityService/Dockerfile
+    container_name: identity-service
+    restart: always
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__Redis=redis:6379
+    ports:
+      - "5001:5001"
+    volumes:
+      - ./AirlineManagementSystem/Services/IdentityService/logs:/app/logs
+    depends_on:
+      - sqlserver
+      - redis
+      - rabbitmq
+    networks:
+      - airline-network
+
+  flight-service:
+    build:
+      context: ./AirlineManagementSystem
+      dockerfile: Services/FlightService/Dockerfile
+    container_name: flight-service
+    restart: always
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__Redis=redis:6379
+    ports:
+      - "5002:5002"
+    volumes:
+      - ./AirlineManagementSystem/Services/FlightService/logs:/app/logs
+    depends_on:
+      - sqlserver
+      - redis
+      - rabbitmq
+    networks:
+      - airline-network
+
+  booking-service:
+    build:
+      context: ./AirlineManagementSystem
+      dockerfile: Services/BookingService/Dockerfile
+    container_name: booking-service
+    restart: always
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__Redis=redis:6379
+    ports:
+      - "5003:5003"
+    volumes:
+      - ./AirlineManagementSystem/Services/BookingService/logs:/app/logs
+    depends_on:
+      - sqlserver
+      - redis
+      - rabbitmq
+    networks:
+      - airline-network
+
+  payment-service:
+    build:
+      context: ./AirlineManagementSystem
+      dockerfile: Services/PaymentService/Dockerfile
+    container_name: payment-service
+    restart: always
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__Redis=redis:6379
+    ports:
+      - "5004:5004"
+    volumes:
+      - ./AirlineManagementSystem/Services/PaymentService/logs:/app/logs
+    depends_on:
+      - sqlserver
+      - redis
+      - rabbitmq
+    networks:
+      - airline-network
+
+  checkin-service:
+    build:
+      context: ./AirlineManagementSystem
+      dockerfile: Services/CheckInService/Dockerfile
+    container_name: checkin-service
+    restart: always
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__Redis=redis:6379
+    ports:
+      - "5005:5005"
+    volumes:
+      - ./AirlineManagementSystem/Services/CheckInService/logs:/app/logs
+    depends_on:
+      - sqlserver
+      - redis
+      - rabbitmq
+    networks:
+      - airline-network
+
+  baggage-service:
+    build:
+      context: ./AirlineManagementSystem
+      dockerfile: Services/BaggageService/Dockerfile
+    container_name: baggage-service
+    restart: always
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__Redis=redis:6379
+    ports:
+      - "5006:5006"
+    volumes:
+      - ./AirlineManagementSystem/Services/BaggageService/logs:/app/logs
+    depends_on:
+      - sqlserver
+      - redis
+      - rabbitmq
+    networks:
+      - airline-network
+
+  reward-service:
+    build:
+      context: ./AirlineManagementSystem
+      dockerfile: Services/RewardService/Dockerfile
+    container_name: reward-service
+    restart: always
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__Redis=redis:6379
+    ports:
+      - "5007:5007"
+    volumes:
+      - ./AirlineManagementSystem/Services/RewardService/logs:/app/logs
+    depends_on:
+      - sqlserver
+      - redis
+      - rabbitmq
+    networks:
+      - airline-network
+
+  agent-service:
+    build:
+      context: ./AirlineManagementSystem
+      dockerfile: Services/AgentService/Dockerfile
+    container_name: agent-service
+    restart: always
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__Redis=redis:6379
+    ports:
+      - "5008:5008"
+    volumes:
+      - ./AirlineManagementSystem/Services/AgentService/logs:/app/logs
+    depends_on:
+      - sqlserver
+      - redis
+      - rabbitmq
+    networks:
+      - airline-network
+
+  notification-service:
+    build:
+      context: ./AirlineManagementSystem
+      dockerfile: Services/NotificationService/Dockerfile
+    container_name: notification-service
+    restart: always
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__Redis=redis:6379
+      - IdentityServiceUrl=http://identity-service:5001
+    ports:
+      - "5009:5009"
+    volumes:
+      - ./AirlineManagementSystem/Services/NotificationService/logs:/app/logs
+    depends_on:
+      - sqlserver
+      - redis
+      - rabbitmq
+    networks:
+      - airline-network
+
+  admin-service:
+    build:
+      context: ./AirlineManagementSystem
+      dockerfile: Services/AdminService/Dockerfile
+    container_name: admin-service
+    restart: always
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__Redis=redis:6379
+    ports:
+      - "5010:5010"
+    volumes:
+      - ./AirlineManagementSystem/Services/AdminService/logs:/app/logs
+    depends_on:
+      - sqlserver
+      - redis
+      - rabbitmq
+    networks:
+      - airline-network
+
+  api-gateway:
+    build:
+      context: ./AirlineManagementSystem
+      dockerfile: ApiGateway/Dockerfile
+    container_name: api-gateway
+    restart: always
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__Redis=redis:6379
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./AirlineManagementSystem/ApiGateway/logs:/app/logs
+    depends_on:
+      - identity-service
+      - flight-service
+      - booking-service
+      - payment-service
+      - checkin-service
+      - baggage-service
+      - reward-service
+      - agent-service
+      - notification-service
+      - admin-service
+    networks:
+      - airline-network
+
+  frontend:
+    build:
+      context: ./AirlineManagementSystem_Frontend
+      dockerfile: Dockerfile
+    container_name: frontend
+    restart: always
+    ports:
+      - "4200:4200"
+    depends_on:
+      - api-gateway
+    networks:
+      - airline-network
+
+
+
