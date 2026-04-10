@@ -32,10 +32,10 @@
             <tr *ngFor="let s of filteredSchedules()">
               <td>
                 <span class="fn-code" style="display: block;">{{ s.flightNumber }}</span>
-                <small class="route-small">{{ s.source }} → {{ s.destination }}</small>
+                <small class="route-small">{{ s.source }} &rarr; {{ s.destination }}</small>
               </td>
-              <td>{{ s.departureTime | date:'medium' }}</td>
-              <td>{{ s.arrivalTime | date:'shortTime' }}</td>
+              <td>{{ s.departureTime | airlineTime:'medium' }}</td>
+              <td>{{ s.arrivalTime | airlineTime:'shortTime' }}</td>
               <td><span class="gate-badge">{{ s.gate || 'TBD' }}</span></td>
               <td>
                 <span class="seats-count">{{ s.availableSeats }}/{{ s.totalSeats }}</span>
@@ -139,7 +139,7 @@
           </div>
           <div class="cf-group"><label>FIRST CLASS SEATS</label><input type="number" [ngModel]="firstSeats()" (ngModelChange)="firstSeats.set(+$event || null)" name="fs" /></div>
 
-          <div class="cf-divider">Pricing Overrides (₹)</div>
+          <div class="cf-divider">Pricing Overrides (&#8377;)</div>
           <div class="cf-row">
             <div class="cf-group"><label>ECONOMY PRICE</label><input type="number" [ngModel]="economyPrice()" (ngModelChange)="economyPrice.set(+$event || null)" name="ep" /></div>
             <div class="cf-group"><label>BUSINESS PRICE</label><input type="number" [ngModel]="businessPrice()" (ngModelChange)="businessPrice.set(+$event || null)" name="bp" /></div>
@@ -162,8 +162,8 @@
           <h2 class="font-headline" style="color: var(--primary); display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
             <span class="material-symbols-outlined">group</span> Passenger Manifest
           </h2>
-          <p class="pg-sub">Flight {{ manifestSchedule()?.flightNumber }} | {{ manifestSchedule()?.source }} → {{ manifestSchedule()?.destination }}</p>
-          <p class="pg-sub" style="font-size: 0.85rem; margin-top: 0.25rem;">Departure: {{ manifestSchedule()?.departureTime | date:'medium':'+0530' }}</p>
+          <p class="pg-sub">Flight {{ manifestSchedule()?.flightNumber }} | {{ manifestSchedule()?.source }} &rarr; {{ manifestSchedule()?.destination }}</p>
+          <p class="pg-sub" style="font-size: 0.85rem; margin-top: 0.25rem;">Departure: {{ manifestSchedule()?.departureTime | airlineTime:'medium':'+0530' }}</p>
         </div>
         <button class="close-manifest-btn" (click)="closeManifest()">
           <span class="material-symbols-outlined">close</span>
@@ -204,3 +204,4 @@
     </div>
   </div>
 </main>
+

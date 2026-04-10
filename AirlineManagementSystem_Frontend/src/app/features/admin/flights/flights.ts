@@ -1,3 +1,4 @@
+﻿import { AirlineTimePipe } from '../../../shared/pipes/airline-time.pipe';
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -11,7 +12,7 @@ import { Flight } from '../../../core/models/api.models';
 @Component({
   selector: 'app-admin-flights',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, TopNavbarComponent, SideNavbarComponent],
+  imports: [CommonModule, FormsModule, RouterModule, TopNavbarComponent, SideNavbarComponent, AirlineTimePipe],
   templateUrl: './flights.html',
   styleUrl: './flights.css'
 })
@@ -151,3 +152,4 @@ export class AdminFlightsComponent implements OnInit {
     }
   }
 }
+

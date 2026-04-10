@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { TopNavbarComponent } from '../../../shared/components/top-navbar.component';
 import { FlightService } from '../../../core/services/flight.service';
+import { TimezoneService } from '../../../core/services/timezone.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { FlightSchedule } from '../../../core/models/api.models';
 
@@ -51,7 +52,8 @@ export class FlightSearchComponent {
   constructor(
     private flightService: FlightService,
     public authService: AuthService,
-    private router: Router
+    private router: Router,
+    private timezoneService: TimezoneService
   ) {}
 
   get flights(): FlightSchedule[] {
@@ -64,7 +66,13 @@ export class FlightSearchComponent {
     const timeFilter = this.filterDepartureTime();
     if (timeFilter !== 'all') {
       results = results.filter(f => {
-        const hourStr = new Date(f.departureTime).toLocaleString('en-US', { timeZone: 'Asia/Kolkata', hour: 'numeric', hour12: false });
+        const d = new Date(f.departureTime);
+        const tz = this.timezoneService.getTimezone();
+        let iana = 'UTC';
+        if (tz === 'IST') iana = 'Asia/Kolkata';
+        else if (tz === 'EST') iana = 'America/New_York';
+        
+        const hourStr = d.toLocaleString('en-US', { timeZone: iana, hour: 'numeric', hour12: false });
         const hour = parseInt(hourStr, 10);
         if (timeFilter === 'morning') return hour >= 5 && hour < 12;
         if (timeFilter === 'afternoon') return hour >= 12 && hour < 17;
@@ -185,7 +193,12 @@ export class FlightSearchComponent {
   formatTime(dateStr: string): string {
     if (!dateStr) return '--:--';
     const d = new Date(dateStr);
-    return d.toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', hour12: false });
+    const tz = this.timezoneService.getTimezone();
+    let iana = 'UTC';
+    if (tz === 'IST') iana = 'Asia/Kolkata';
+    else if (tz === 'EST') iana = 'America/New_York';
+    
+    return d.toLocaleTimeString('en-IN', { timeZone: iana, hour: '2-digit', minute: '2-digit', hour12: false });
   }
 
   getDuration(dep: string, arr: string): string {

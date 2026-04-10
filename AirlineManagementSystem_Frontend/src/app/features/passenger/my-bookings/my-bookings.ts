@@ -1,3 +1,4 @@
+﻿import { AirlineTimePipe } from '../../../shared/pipes/airline-time.pipe';
 import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
@@ -12,7 +13,7 @@ import { Booking, Flight, Baggage } from '../../../core/models/api.models';
 @Component({
   selector: 'app-my-bookings',
   standalone: true,
-  imports: [CommonModule, RouterModule, TopNavbarComponent, SideNavbarComponent],
+  imports: [CommonModule, RouterModule, TopNavbarComponent, SideNavbarComponent, AirlineTimePipe],
   templateUrl: './my-bookings.html',
   styleUrl: './my-bookings.css'
 })
@@ -200,3 +201,4 @@ export class MyBookingsComponent implements OnInit {
     this.baggagesOfBooking.set([]);
   }
 }
+

@@ -1,3 +1,4 @@
+using Shared.Middleware;
 using Serilog;
 using Serilog.Context;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -108,6 +109,23 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+app.UseMiddleware<GlobalExceptionMiddleware>();
+
+// Middleware moved down
+
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<PaymentDbContext>();
+    dbContext.Database.Migrate();
+}
+
+app.UseSwagger();
+app.UseSwaggerUI();
+
+app.UseHttpsRedirection();
+app.UseCors("AllowAll");
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.Use(async (context, next) =>
 {
@@ -123,20 +141,6 @@ app.Use(async (context, next) =>
 });
 
 app.UseSerilogRequestLogging();
-
-using (var scope = app.Services.CreateScope())
-{
-    var dbContext = scope.ServiceProvider.GetRequiredService<PaymentDbContext>();
-    dbContext.Database.Migrate();
-}
-
-app.UseSwagger();
-app.UseSwaggerUI();
-
-app.UseHttpsRedirection();
-app.UseCors("AllowAll");
-app.UseAuthentication();
-app.UseAuthorization();
 app.MapControllers();
 
 app.Run();

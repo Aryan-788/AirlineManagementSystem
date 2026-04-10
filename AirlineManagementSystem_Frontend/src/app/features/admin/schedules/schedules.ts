@@ -1,3 +1,4 @@
+import { AirlineTimePipe } from '../../../shared/pipes/airline-time.pipe';
 import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -7,12 +8,13 @@ import { SideNavbarComponent } from '../../../shared/components/side-navbar.comp
 import { FlightService } from '../../../core/services/flight.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { BookingService } from '../../../core/services/booking.service';
+import { TimezoneService } from '../../../core/services/timezone.service';
 import { FlightSchedule, Flight, ScheduleBooking } from '../../../core/models/api.models';
 
 @Component({
   selector: 'app-admin-schedules',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, TopNavbarComponent, SideNavbarComponent],
+  imports: [CommonModule, FormsModule, RouterModule, TopNavbarComponent, SideNavbarComponent, AirlineTimePipe],
   templateUrl: './schedules.html',
   styleUrl: './schedules.css',
   providers: [DatePipe]
@@ -83,7 +85,8 @@ export class AdminSchedulesComponent implements OnInit {
     public authService: AuthService,
     private flightService: FlightService,
     private bookingService: BookingService,
-    private datePipe: DatePipe
+    private datePipe: DatePipe,
+    private timezoneService: TimezoneService
   ) {}
 
   ngOnInit() {
@@ -131,7 +134,12 @@ export class AdminSchedulesComponent implements OnInit {
     // Format dates for datetime-local
     const toLocalISO = (dateStr: string) => {
         const d = new Date(dateStr);
-        return new Date(d.getTime() + (330 * 60000)).toISOString().slice(0, 16);
+        // Compute active offset
+        const tz = this.timezoneService.getTimezone();
+        let offsetMinutes = 0; // UTC
+        if (tz === 'IST') offsetMinutes = 330;
+        else if (tz === 'EST') offsetMinutes = -300;
+        return new Date(d.getTime() + (offsetMinutes * 60000)).toISOString().slice(0, 16);
     };
 
     this.flightId.set(schedule.flightId);
@@ -197,10 +205,15 @@ export class AdminSchedulesComponent implements OnInit {
             return;
         }
 
+        const tz = this.timezoneService.getTimezone();
+        let os = '+00:00';
+        if (tz === 'IST') os = '+05:30';
+        else if (tz === 'EST') os = '-05:00';
+
         const data: any = {
           flightId: this.flightId(),
-          departureTime: new Date(this.departureTime() + '+05:30').toISOString(),
-          arrivalTime: new Date(this.arrivalTime() + '+05:30').toISOString(),
+          departureTime: new Date(this.departureTime() + os).toISOString(),
+          arrivalTime: new Date(this.arrivalTime() + os).toISOString(),
           status: this.status(),
           ...overrides
         };
@@ -237,19 +250,25 @@ export class AdminSchedulesComponent implements OnInit {
         const nextDayArrival = arrMs <= depMs;
 
         const payloads: any[] = [];
-        const iterDate = new Date(`${start.toISOString().slice(0, 10)}T00:00:00+05:30`);
-        const iterEndDate = new Date(`${end.toISOString().slice(0, 10)}T23:59:59+05:30`);
+        
+        const tz = this.timezoneService.getTimezone();
+        let os = '+00:00';
+        if (tz === 'IST') os = '+05:30';
+        else if (tz === 'EST') os = '-05:00';
+        
+        const iterDate = new Date(`${start.toISOString().slice(0, 10)}T00:00:00${os}`);
+        const iterEndDate = new Date(`${end.toISOString().slice(0, 10)}T23:59:59${os}`);
         
         while (iterDate <= iterEndDate) {
             if (this.selectedDays().includes(iterDate.getDay())) {
                 const dateStr = iterDate.toISOString().slice(0, 10);
                 
-                // Construct IST explicit string and let angular convert it to UTC via ToISOString()
-                // iterDate at this point represents the correct date logic in IST context
+                // Construct requested explicit string and let angular convert it to UTC via ToISOString()
+                // iterDate at this point represents the correct date logic in local context
                 
-                const dep = new Date(`${dateStr}T${this.depTimeOnly().padStart(5, '0')}:00+05:30`);
+                const dep = new Date(`${dateStr}T${this.depTimeOnly().padStart(5, '0')}:00${os}`);
                 
-                const arr = new Date(`${dateStr}T${this.arrTimeOnly().padStart(5, '0')}:00+05:30`);
+                const arr = new Date(`${dateStr}T${this.arrTimeOnly().padStart(5, '0')}:00${os}`);
                 if (nextDayArrival) arr.setDate(arr.getDate() + 1);
 
                 payloads.push({
@@ -348,3 +367,4 @@ export class AdminSchedulesComponent implements OnInit {
     this.manifestBookings.set([]);
   }
 }
+

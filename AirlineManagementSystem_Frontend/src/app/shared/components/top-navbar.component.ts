@@ -5,11 +5,13 @@ import { AuthService } from '../../core/services/auth.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { Notification } from '../../core/models/api.models';
 import { ProfileModalComponent } from './profile-modal.component';
+import { TimezoneService } from '../../core/services/timezone.service';
+import { AirlineTimePipe } from '../pipes/airline-time.pipe';
 
 @Component({
   selector: 'app-top-navbar',
   standalone: true,
-  imports: [CommonModule, RouterModule, ProfileModalComponent],
+  imports: [CommonModule, RouterModule, ProfileModalComponent, AirlineTimePipe],
   template: `
     <nav class="top-nav glass-nav">
       <div class="nav-container">
@@ -42,7 +44,7 @@ import { ProfileModalComponent } from './profile-modal.component';
                   <div class="notif-content">
                     <div class="notif-subject">{{ n.subject }}</div>
                     <div class="notif-message">{{ n.message }}</div>
-                    <div class="notif-time">{{ n.createdAt | date:'medium':'+0530' }}</div>
+                    <div class="notif-time">{{ n.createdAt | airlineTime:'medium' }}</div>
                   </div>
                 </div>
                 <div class="notif-empty" *ngIf="notifications().length === 0">
@@ -55,6 +57,16 @@ import { ProfileModalComponent } from './profile-modal.component';
           <button class="icon-btn" title="Settings">
             <span class="material-symbols-outlined">settings</span>
           </button>
+          
+          <div class="tz-selector">
+            <span class="material-symbols-outlined tz-icon">public</span>
+            <select (change)="onTimezoneChange($event)" [value]="timezoneService.getTimezone()">
+              <option value="UTC">UTC</option>
+              <option value="IST">IST (India)</option>
+              <option value="EST">EST (US)</option>
+            </select>
+          </div>
+
           <div class="user-profile-wrapper">
             <div class="user-avatar" (click)="toggleProfileMenu(); $event.stopPropagation()">
               <div class="avatar-circle">{{ getInitials() }}</div>
@@ -269,6 +281,27 @@ import { ProfileModalComponent } from './profile-modal.component';
       width: 100%;
       background: #f1f5f9;
     }
+    .tz-selector {
+      display: flex;
+      align-items: center;
+      background: #f8fafc;
+      padding: 0.25rem 0.5rem;
+      border-radius: 8px;
+      gap: 0.5rem;
+      border: 1px solid #e2e8f0;
+      margin-right: 0.5rem;
+    }
+    .tz-icon { font-size: 1.1rem; color: #1d4ed8; }
+    .tz-selector select {
+      border: none;
+      background: transparent;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #334155;
+      cursor: pointer;
+      outline: none;
+    }
+    .tz-selector select:hover { color: #1d4ed8; }
     .user-profile-wrapper { position: relative; display: flex; align-items: center; }
     .profile-dropdown {
       position: absolute;
@@ -328,7 +361,8 @@ export class TopNavbarComponent {
 
   constructor(
     public authService: AuthService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    public timezoneService: TimezoneService
   ) {}
 
   ngOnInit() {
@@ -393,5 +427,9 @@ export class TopNavbarComponent {
 
   getDashboardLink(): string {
     return this.authService.getDefaultRoute();
+  }
+
+  onTimezoneChange(event: any) {
+    this.timezoneService.setTimezone(event.target.value);
   }
 }

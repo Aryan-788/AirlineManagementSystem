@@ -125,8 +125,8 @@
         <tbody>
           <tr *ngFor="let f of flights().slice(0,5)">
             <td><div class="flight-cell"><span class="fc-id">{{ f.flightNumber }}</span></div></td>
-            <td class="route-cell">{{ f.source }} → {{ f.destination }}</td>
-            <td class="text-muted">{{ f.departureTime | date:'medium' }}</td>
+            <td class="route-cell">{{ f.source }} &rarr; {{ f.destination }}</td>
+            <td class="text-muted">{{ f.departureTime | airlineTime:'medium' }}</td>
             <td>{{ f.aircraft }}</td>
             <td><span class="seats-badge">{{ f.availableSeats }}</span></td>
             <td><span class="status-tag" [ngClass]="getStatusClass(f.status)">{{ f.status }}</span></td>
@@ -143,3 +143,4 @@
   <span class="material-symbols-outlined" style="font-variation-settings:'FILL' 1">add</span>
   <span>New Flight</span>
 </button>
+

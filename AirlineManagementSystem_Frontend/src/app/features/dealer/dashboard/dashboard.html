@@ -49,7 +49,7 @@
         <span class="dm-badge amber">Earnings</span>
       </div>
       <h3 class="dm-label">Total Commission</h3>
-      <p class="dm-value font-headline">₹{{ (performance()?.totalCommission || 0) | number:'1.2-2' }}</p>
+      <p class="dm-value font-headline">&#8377;{{ (performance()?.totalCommission || 0) | number:'1.2-2' }}</p>
       <div class="dm-trend">
         <span class="material-symbols-outlined">trending_up</span>
         <span class="dm-trend-val">{{ performance()?.commissionRate }}%</span>
@@ -107,8 +107,8 @@
         <tbody>
           <tr *ngFor="let f of flights()">
             <td><span class="fn-code">{{ f.flightNumber }}</span></td>
-            <td>{{ f.source }} → {{ f.destination }}</td>
-            <td class="text-muted">{{ f.departureTime | date:'short' }}</td>
+            <td>{{ f.source }} &rarr; {{ f.destination }}</td>
+            <td class="text-muted">{{ f.departureTime | airlineTime:'short' }}</td>
             <td>{{ f.aircraft }}</td>
             <td><span class="seat-badge-sm">{{ f.availableSeats }}</span></td>
             <td><span class="tag-sm tag-green">{{ f.status }}</span></td>
@@ -122,23 +122,22 @@
   <section class="alloc-table" *ngIf="recentBookings().length > 0">
     <div class="at-header">
       <div><h2 class="font-headline sp-title">Recent Bookings</h2><p class="cp-sub">Your latest customer bookings</p></div>
-      <a routerLink="/dealer/my-bookings" class="at-view-all">View All →</a>
+      <a routerLink="/dealer/my-bookings" class="at-view-all">View All &rarr;</a>
     </div>
     <div class="at-wrap">
       <table>
-        <thead><tr><th>PNR</th><th>CLASS</th><th>PASSENGERS</th><th>AMOUNT</th><th>STATUS</th><th>DATE</th></tr></thead>
+        <thead><tr><th>PNR</th><th>AMOUNT</th><th>STATUS</th><th>DATE</th></tr></thead>
         <tbody>
           <tr *ngFor="let b of recentBookings()">
             <td><span class="fn-code">{{ b.pnr }}</span></td>
-            <td>{{ b.seatClass }}</td>
-            <td>{{ b.totalPassengers }}</td>
-            <td><strong>₹{{ b.totalAmount | number:'1.2-2' }}</strong></td>
+            <td><strong>&#8377;{{ b.totalAmount | number:'1.2-2' }}</strong></td>
             <td><span class="tag-sm" [class.tag-green]="b.status === 'Confirmed'" [class.tag-amber]="b.status === 'Pending'" [class.tag-red]="b.status === 'Cancelled'">{{ b.status }}</span></td>
-            <td class="text-muted">{{ b.createdAt | date:'mediumDate' }}</td>
+            <td class="text-muted">{{ b.createdAt | airlineTime:'mediumDate' }}</td>
           </tr>
         </tbody>
       </table>
     </div>
   </section>
 </main>
+
 

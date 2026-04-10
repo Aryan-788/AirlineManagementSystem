@@ -19,6 +19,7 @@ public interface IAuthService
     Task<UserDto> UpdateProfileAsync(int userId, UpdateProfileDto dto);
     Task ForgotPasswordAsync(ForgotPasswordDto dto);
     Task ResetPasswordAsync(ResetPasswordDto dto);
+    Task<IEnumerable<UserDto>> GetAllUsersAsync();
 }
 
 public class AuthService : IAuthService
@@ -273,5 +274,18 @@ public class AuthService : IAuthService
         user.ResetTokenExpiry = null;
 
         await _userRepository.UpdateAsync(user);
+    }
+
+    public async Task<IEnumerable<UserDto>> GetAllUsersAsync()
+    {
+        var users = await _userRepository.GetAllAsync();
+        return users.Select(u => new UserDto
+        {
+            Id = u.Id,
+            Name = u.Name,
+            Email = u.Email,
+            Role = u.Role.ToString(),
+            CreatedAt = u.CreatedAt
+        });
     }
 }

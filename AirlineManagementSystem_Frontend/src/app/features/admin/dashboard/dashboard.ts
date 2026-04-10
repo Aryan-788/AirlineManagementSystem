@@ -1,3 +1,4 @@
+import { AirlineTimePipe } from '../../../shared/pipes/airline-time.pipe';
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
@@ -12,7 +13,7 @@ import { AdminDashboard, Flight, Booking } from '../../../core/models/api.models
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterModule, TopNavbarComponent, SideNavbarComponent],
+  imports: [CommonModule, RouterModule, TopNavbarComponent, SideNavbarComponent, AirlineTimePipe],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css'
 })
@@ -46,33 +47,33 @@ export class AdminDashboardComponent implements OnInit {
 
   ngOnInit() {
     this.adminService.getDashboard().subscribe({
-      next: (d) => { /* Keep for fallback or structural */ },
+      next: (d) => { 
+        this.stats.set({
+          totalBookings: d.totalBookings,
+          totalRevenue: d.totalRevenue,
+          activeFlights: d.activeFlights,
+          totalUsers: d.totalUsers
+        });
+      },
       error: () => {}
     });
     this.flightService.getAllFlights().subscribe({
       next: (f) => {
         this.flights.set(f);
         let bookings = 0;
-        let revenue = 0;
-        let active = 0;
         let totalEcon = 0, totalBus = 0, totalFirst = 0;
 
         f.forEach(flight => {
-          // Approximate booked seats (since 'totalSeats' represents max in some configurations, or use available)
-          const maxCapacity = 180; // Estimate if not provided
-          const capacity = flight.totalSeats > 0 ? flight.totalSeats : maxCapacity;
+          // Keep for pie chart structure simulation if needed
+          const capacity = flight.totalSeats > 0 ? flight.totalSeats : 180;
           const booked = Math.max(0, capacity - flight.availableSeats);
           
           if (booked > 0) {
             bookings += booked;
-            revenue += booked * (flight.economyPrice || 5000);
-            
-            // Assume distribution for charts
             totalEcon += Math.floor(booked * 0.7);
             totalBus += Math.floor(booked * 0.2);
             totalFirst += Math.floor(booked * 0.1);
           }
-          if (flight.status?.toLowerCase() === 'scheduled') active++;
         });
 
         const totalDistrib = totalEcon + totalBus + totalFirst || 1;
@@ -82,13 +83,7 @@ export class AdminDashboardComponent implements OnInit {
           firstPct: Math.round((totalFirst / totalDistrib) * 100),
           totalBooked: bookings
         });
-
-        this.stats.set({
-          totalBookings: bookings,
-          totalRevenue: revenue,
-          activeFlights: active,
-          totalUsers: bookings > 0 ? Math.ceil(bookings * 0.8) : 0 // Rough estimate of unique users
-        });
+        
         
         this.loading.set(false);
       },
@@ -106,3 +101,4 @@ export class AdminDashboardComponent implements OnInit {
     }
   }
 }
+

@@ -1,3 +1,4 @@
+using Shared.Middleware;
 using Serilog;
 using Serilog.Context;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -113,21 +114,9 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+app.UseMiddleware<GlobalExceptionMiddleware>();
 
-app.Use(async (context, next) =>
-{
-    var userId = context.User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
-                 ?? context.User?.FindFirst("sub")?.Value
-                 ?? context.Request.Headers["X-User-Id"].FirstOrDefault()
-                 ?? "Anonymous";
-
-    using (LogContext.PushProperty("UserId", userId))
-    {
-        await next(context);
-    }
-});
-
-app.UseSerilogRequestLogging();
+// Middleware moved down
 
 using (var scope = app.Services.CreateScope())
 {
@@ -135,7 +124,7 @@ using (var scope = app.Services.CreateScope())
     dbContext.Database.Migrate();
 }
 
-// RabbitMQ consumers are singleton — each handler needs its own scope for scoped services
+// RabbitMQ consumers are singleton â€” each handler needs its own scope for scoped services
 var eventConsumer = app.Services.GetRequiredService<IEventConsumer>();
 eventConsumer.Initialize("NotificationService");
 var scopeFactory = app.Services.GetRequiredService<IServiceScopeFactory>();
@@ -198,6 +187,21 @@ app.UseHttpsRedirection();
 app.UseCors("AllowAll");
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.Use(async (context, next) =>
+{
+    var userId = context.User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+                 ?? context.User?.FindFirst("sub")?.Value
+                 ?? context.Request.Headers["X-User-Id"].FirstOrDefault()
+                 ?? "Anonymous";
+
+    using (LogContext.PushProperty("UserId", userId))
+    {
+        await next(context);
+    }
+});
+
+app.UseSerilogRequestLogging();
 app.MapControllers();
 
 app.Run();

@@ -173,7 +173,7 @@
               <div class="journey-point">
                 <div class="jp-code">{{ selectedFlight()?.source }}</div>
                 <div class="jp-name">{{ selectedFlight()?.source || 'Origin' }}</div>
-                <div class="jp-time">{{ selectedFlight()?.departureTime | date:'shortTime' }}</div>
+                <div class="jp-time">{{ selectedFlight()?.departureTime | airlineTime:'shortTime' }}</div>
               </div>
               
               <div class="journey-path">
@@ -193,7 +193,7 @@
               <div class="journey-point text-right">
                 <div class="jp-code">{{ selectedFlight()?.destination }}</div>
                 <div class="jp-name">{{ selectedFlight()?.destination || 'Destination' }}</div>
-                <div class="jp-time">{{ selectedFlight()?.arrivalTime | date:'shortTime' }}</div>
+                <div class="jp-time">{{ selectedFlight()?.arrivalTime | airlineTime:'shortTime' }}</div>
               </div>
           </div>
 
@@ -251,11 +251,11 @@
             </div>
             <div class="m-info-group">
               <label>Booking Date</label>
-              <p>{{ selectedBooking()?.createdAt | date:'mediumDate' }}</p>
+              <p>{{ selectedBooking()?.createdAt | airlineTime:'mediumDate' }}</p>
             </div>
             <div class="m-info-group">
               <label>Total Fare</label>
-              <p class="price-text">₹{{ selectedBooking()?.totalAmount | number:'1.2-2' }}</p>
+              <p class="price-text">&#8377;{{ selectedBooking()?.totalAmount | number:'1.2-2' }}</p>
             </div>
           </div>
 
@@ -305,5 +305,6 @@
     </div>
   </div>
 </div>
+
 
 

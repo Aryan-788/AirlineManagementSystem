@@ -1,3 +1,4 @@
+using Shared.Middleware;
 using Serilog;
 using Serilog.Context;
 using RabbitMQ.Client;
@@ -113,21 +114,11 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+app.UseMiddleware<GlobalExceptionMiddleware>();
 
-app.Use(async (context, next) =>
-{
-    var userId = context.User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
-                 ?? context.User?.FindFirst("sub")?.Value
-                 ?? context.Request.Headers["X-User-Id"].FirstOrDefault()
-                 ?? "Anonymous";
+// Middleware moved down
 
-    using (LogContext.PushProperty("UserId", userId))
-    {
-        await next(context);
-    }
-});
-
-app.UseSerilogRequestLogging();
+// Moved down
 
 using (var scope = app.Services.CreateScope())
 {
@@ -144,6 +135,21 @@ app.UseHttpsRedirection();
 app.UseCors("AllowAll");
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.Use(async (context, next) =>
+{
+    var userId = context.User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+                 ?? context.User?.FindFirst("sub")?.Value
+                 ?? context.Request.Headers["X-User-Id"].FirstOrDefault()
+                 ?? "Anonymous";
+
+    using (LogContext.PushProperty("UserId", userId))
+    {
+        await next(context);
+    }
+});
+
+app.UseSerilogRequestLogging();
 app.MapControllers();
 
 app.Run();

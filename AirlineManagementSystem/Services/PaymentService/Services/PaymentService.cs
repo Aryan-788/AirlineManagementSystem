@@ -16,6 +16,7 @@ public interface IPaymentService
     Task<PaymentDto> VerifySignatureAsync(VerifySignatureDto dto);
     Task<PaymentDto> GetPaymentAsync(int id);
     Task<PaymentDto> RefundAsync(int paymentId);
+    Task<IEnumerable<PaymentDto>> GetAllPaymentsAsync();
 }
 
 public class PaymentServiceImpl : IPaymentService
@@ -255,5 +256,11 @@ public class PaymentServiceImpl : IPaymentService
             PaymentMethod = payment.PaymentMethod,
             CreatedAt = payment.CreatedAt
         };
+    }
+
+    public async Task<IEnumerable<PaymentDto>> GetAllPaymentsAsync()
+    {
+        var payments = await _repository.GetAllAsync();
+        return payments.Select(MapToDto);
     }
 }

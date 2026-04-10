@@ -1,3 +1,4 @@
+﻿import { AirlineTimePipe } from '../../../shared/pipes/airline-time.pipe';
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -13,7 +14,7 @@ import { CommissionReport, DealerPerformance, Flight, Booking } from '../../../c
 @Component({
   selector: 'app-dealer-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, TopNavbarComponent, SideNavbarComponent],
+  imports: [CommonModule, FormsModule, RouterModule, TopNavbarComponent, SideNavbarComponent, AirlineTimePipe],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css'
 })
@@ -83,3 +84,4 @@ export class DealerDashboardComponent implements OnInit {
     });
   }
 }
+

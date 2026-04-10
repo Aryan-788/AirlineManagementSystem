@@ -1,3 +1,4 @@
+﻿import { AirlineTimePipe } from '../../../shared/pipes/airline-time.pipe';
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
@@ -11,7 +12,7 @@ import { TopNavbarComponent } from '../../../shared/components/top-navbar.compon
 @Component({
   selector: 'app-check-in',
   standalone: true,
-  imports: [CommonModule, RouterModule, TopNavbarComponent],
+  imports: [CommonModule, RouterModule, TopNavbarComponent, AirlineTimePipe],
   templateUrl: './check-in.html',
   styleUrl: './check-in.css'
 })
@@ -132,3 +133,4 @@ export class CheckInComponent implements OnInit {
     this.currentBoardingPass.set(null);
   }
 }
+

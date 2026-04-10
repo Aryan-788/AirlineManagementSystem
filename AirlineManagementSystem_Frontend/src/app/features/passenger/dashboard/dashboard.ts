@@ -1,3 +1,4 @@
+﻿import { AirlineTimePipe } from '../../../shared/pipes/airline-time.pipe';
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
@@ -13,7 +14,7 @@ import { Booking, RewardBalance, Notification, Flight } from '../../../core/mode
 @Component({
   selector: 'app-passenger-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterModule, TopNavbarComponent, SideNavbarComponent],
+  imports: [CommonModule, RouterModule, TopNavbarComponent, SideNavbarComponent, AirlineTimePipe],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css'
 })
@@ -123,3 +124,4 @@ export class PassengerDashboardComponent implements OnInit {
     this.selectedFlight.set(null);
   }
 }
+

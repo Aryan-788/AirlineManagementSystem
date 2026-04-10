@@ -30,8 +30,8 @@
           <tbody>
             <tr *ngFor="let f of flights()">
               <td><span class="fn-code">{{ f.flightNumber }}</span></td>
-              <td>{{ f.source }} → {{ f.destination }}</td>
-              <td class="text-muted">{{ f.departureTime | date:'short' }}</td>
+              <td>{{ f.source }} &rarr; {{ f.destination }}</td>
+              <td class="text-muted">{{ f.departureTime | airlineTime:'short' }}</td>
               <td><span class="ac-badge">{{ f.aircraft }}</span></td>
               <td>{{ f.gate || 'TBD' }}</td>
               <td><span class="seats-count">{{ f.availableSeats }}/{{ f.totalSeats }}</span></td>
@@ -82,7 +82,7 @@
             <div class="cf-group"><label>BUSINESS</label><input type="number" [ngModel]="businessSeats()" (ngModelChange)="businessSeats.set($event)" name="bs" /></div>
             <div class="cf-group"><label>FIRST CLASS</label><input type="number" [ngModel]="firstSeats()" (ngModelChange)="firstSeats.set($event)" name="fs" /></div>
           </div>
-          <div class="cf-divider">Pricing (₹)</div>
+          <div class="cf-divider">Pricing (&#8377;)</div>
           <div class="cf-row">
             <div class="cf-group"><label>ECONOMY PRICE</label><input type="number" [ngModel]="economyPrice()" (ngModelChange)="economyPrice.set($event)" name="ep" placeholder="3500" /></div>
             <div class="cf-group"><label>BUSINESS PRICE</label><input type="number" [ngModel]="businessPrice()" (ngModelChange)="businessPrice.set($event)" name="bp" placeholder="9000" /></div>
@@ -111,3 +111,4 @@
     </aside>
   </div>
 </main>
+

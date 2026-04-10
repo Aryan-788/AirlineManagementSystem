@@ -1,3 +1,4 @@
+using Shared.Middleware;
 using Serilog;
 using Serilog.Context;
 using AdminService.Services;
@@ -25,8 +26,8 @@ builder.Host.UseSerilog();
 
 var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>() ?? new JwtSettings();
 
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddHttpClient<IAdminService, AdminServiceImpl>();
-builder.Services.AddScoped<IAdminService, AdminServiceImpl>();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -87,6 +88,20 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+app.UseMiddleware<GlobalExceptionMiddleware>();
+
+// Middleware moved down
+
+// Moved down
+
+
+app.UseSwagger();
+app.UseSwaggerUI();
+
+app.UseHttpsRedirection();
+app.UseCors("AllowAll");
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.Use(async (context, next) =>
 {
@@ -102,15 +117,6 @@ app.Use(async (context, next) =>
 });
 
 app.UseSerilogRequestLogging();
-
-
-app.UseSwagger();
-app.UseSwaggerUI();
-
-app.UseHttpsRedirection();
-app.UseCors("AllowAll");
-app.UseAuthentication();
-app.UseAuthorization();
 app.MapControllers();
 
 app.Run();

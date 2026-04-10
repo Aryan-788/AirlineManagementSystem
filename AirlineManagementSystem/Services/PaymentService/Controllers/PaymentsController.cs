@@ -115,4 +115,16 @@ public class PaymentsController : ControllerBase
             return NotFound(new { message = ex.Message });
         }
     }
+
+    /// <summary>
+    /// Get All Payments (Admin only)
+    /// </summary>
+    /// <returns>All payments in the system</returns>
+    [HttpGet("all")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> GetAllPayments()
+    {
+        var result = await _paymentService.GetAllPaymentsAsync();
+        return Ok(result);
+    }
 }

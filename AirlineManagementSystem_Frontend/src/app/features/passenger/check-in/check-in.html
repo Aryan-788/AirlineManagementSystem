@@ -1,4 +1,4 @@
-<app-top-navbar [showSearch]="false"></app-top-navbar>
+﻿<app-top-navbar [showSearch]="false"></app-top-navbar>
 
 <div class="checkin-container">
   <div class="checkin-header">
@@ -35,7 +35,7 @@
           </div>
           <div class="info-item">
             <span class="label">Date</span>
-            <span class="value">{{ b.createdAt | date:'mediumDate' }}</span>
+            <span class="value">{{ b.createdAt | airlineTime:'mediumDate' }}</span>
           </div>
         </div>
         <button 
@@ -101,3 +101,4 @@
     </div>
   </div>
 </div>
+

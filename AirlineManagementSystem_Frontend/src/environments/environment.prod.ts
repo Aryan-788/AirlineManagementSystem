@@ -1,5 +1,5 @@
 export const environment = {
   production: true,
   apiBaseUrl: 'http://localhost:5000',
-  clerkPublishableKey: import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
+  clerkPublishableKey: 'pk_test_Y29uY3JldGUtZG9scGhpbi01Mi5jbGVyay5hY2NvdW50cy5kZXYk'
 };

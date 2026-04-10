@@ -4,6 +4,7 @@ using BookingService.CQRS.Queries;
 using BookingService.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Shared.Exceptions;
 
 namespace BookingService.Controllers;
 
@@ -21,6 +22,7 @@ public class BookingsController : ControllerBase
     private readonly GetOccupiedSeatsQueryHandler _getOccupiedSeatsHandler;
     private readonly GetPassengersForBookingQueryHandler _getPassengersHandler;
     private readonly GetBookingByPnrQueryHandler _getBookingByPnrHandler;
+    private readonly BookingService.Repositories.IBookingRepository _bookingRepository;
     private readonly ILogger<BookingsController> _logger;
 
     public BookingsController(
@@ -34,6 +36,7 @@ public class BookingsController : ControllerBase
         GetOccupiedSeatsQueryHandler getOccupiedSeatsHandler,
         GetPassengersForBookingQueryHandler getPassengersHandler,
         GetBookingByPnrQueryHandler getBookingByPnrHandler,
+        BookingService.Repositories.IBookingRepository bookingRepository,
         ILogger<BookingsController> logger)
     {
         _createBookingHandler = createBookingHandler;
@@ -46,6 +49,7 @@ public class BookingsController : ControllerBase
         _getOccupiedSeatsHandler = getOccupiedSeatsHandler;
         _getPassengersHandler = getPassengersHandler;
         _getBookingByPnrHandler = getBookingByPnrHandler;
+        _bookingRepository = bookingRepository;
         _logger = logger;
     }
 
@@ -58,17 +62,9 @@ public class BookingsController : ControllerBase
     [Authorize(Roles = "Passenger,Dealer")]
     public async Task<IActionResult> CreateBooking([FromBody] CreateBookingDto dto)
     {
-        try
-        {
-            var command = new CreateBookingCommand(dto);
-            var result = await _createBookingHandler.HandleAsync(command);
-            return CreatedAtAction(nameof(GetBooking), new { id = result.Id }, result);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError($"Error creating booking: {ex.Message}");
-            return BadRequest(new { message = ex.Message });
-        }
+        var command = new CreateBookingCommand(dto);
+        var result = await _createBookingHandler.HandleAsync(command);
+        return CreatedAtAction(nameof(GetBooking), new { id = result.Id }, result);
     }
 
     /// <summary>
@@ -81,34 +77,27 @@ public class BookingsController : ControllerBase
     [Authorize(Roles = "Passenger,Dealer")]
     public async Task<IActionResult> AddPassengersToBooking(int bookingId, [FromBody] List<CreatePassengerDto> passengers)
     {
+        if (!ModelState.IsValid)
+            throw new BadRequestException("Invalid state");
+
+        if (passengers == null || passengers.Count == 0)
+            throw new BadRequestException("At least one passenger is required");
+
+        var addedPassengers = new List<PassengerResponseDto>();
+
         try
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
-            if (passengers == null || passengers.Count == 0)
-                return BadRequest(new { message = "At least one passenger is required" });
-
-            var addedPassengers = new List<PassengerResponseDto>();
-
             foreach (var passengerDto in passengers)
             {
                 var command = new CreatePassengerCommand(bookingId, passengerDto);
                 var passenger = await _createPassengerHandler.HandleAsync(command);
                 addedPassengers.Add(passenger);
             }
-
             return CreatedAtAction(nameof(GetBookingPassengers), new { bookingId = bookingId }, addedPassengers);
         }
         catch (InvalidOperationException ex)
         {
-            _logger.LogWarning($"Invalid operation: {ex.Message}");
-            return BadRequest(new { message = ex.Message });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError($"Error adding passengers: {ex.Message}");
-            return StatusCode(500, new { message = "Internal server error" });
+            throw new BadRequestException(ex.Message);
         }
     }
 
@@ -122,17 +111,10 @@ public class BookingsController : ControllerBase
     [Authorize(Roles = "Passenger,Dealer")]
     public async Task<IActionResult> GetBookingPassengers(int bookingId)
     {
-        try
-        {
-            var query = new GetPassengersForBookingQuery(bookingId);
-            var passengers = await _getPassengersHandler.HandleAsync(query);
-            return Ok(passengers);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError($"Error getting passengers: {ex.Message}");
-            return StatusCode(500, new { message = "Internal server error" });
-        }
+        var query = new GetPassengersForBookingQuery(bookingId);
+        var passengers = await _getPassengersHandler.HandleAsync(query);
+        if (passengers == null) throw new NotFoundException("Passengers not found.");
+        return Ok(passengers);
     }
 
     /// <summary>
@@ -145,24 +127,18 @@ public class BookingsController : ControllerBase
     [Authorize(Roles = "Passenger,Dealer")]
     public async Task<IActionResult> CancelPassenger(int passengerId, [FromBody] CancelPassengerDto dto)
     {
+        if (!ModelState.IsValid)
+            throw new BadRequestException("Invalid state");
+
         try
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
             var command = new CancelPassengerCommand(passengerId, dto);
             await _cancelPassengerHandler.HandleAsync(command);
             return Ok(new { message = "Passenger cancelled successfully" });
         }
         catch (InvalidOperationException ex)
         {
-            _logger.LogWarning($"Invalid operation: {ex.Message}");
-            return BadRequest(new { message = ex.Message });
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError($"Error cancelling passenger: {ex.Message}");
-            return StatusCode(500, new { message = "Internal server error" });
+            throw new BadRequestException(ex.Message);
         }
     }
 
@@ -184,7 +160,7 @@ public class BookingsController : ControllerBase
         }
         catch (KeyNotFoundException ex)
         {
-            return NotFound(new { message = ex.Message });
+            throw new NotFoundException(ex.Message);
         }
     }
 
@@ -205,7 +181,7 @@ public class BookingsController : ControllerBase
         }
         catch (KeyNotFoundException ex)
         {
-            return NotFound(new { message = ex.Message });
+            throw new NotFoundException(ex.Message);
         }
     }
 
@@ -226,7 +202,7 @@ public class BookingsController : ControllerBase
         }
         catch (KeyNotFoundException ex)
         {
-            return NotFound(new { message = ex.Message });
+            throw new NotFoundException(ex.Message);
         }
     }
 
@@ -253,17 +229,9 @@ public class BookingsController : ControllerBase
     [Authorize(Roles = "Admin,Dealer")]
     public async Task<IActionResult> GetBookingsBySchedule(int scheduleId)
     {
-        try
-        {
-            var query = new GetBookingsByScheduleQuery(scheduleId);
-            var results = await _getBookingsByScheduleHandler.HandleAsync(query);
-            return Ok(results);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError($"Error getting schedule bookings: {ex.Message}");
-            return StatusCode(500, new { message = "Internal server error" });
-        }
+        var query = new GetBookingsByScheduleQuery(scheduleId);
+        var results = await _getBookingsByScheduleHandler.HandleAsync(query);
+        return Ok(results);
     }
 
 
@@ -277,16 +245,20 @@ public class BookingsController : ControllerBase
     [Authorize(Roles = "Passenger,Dealer,Admin")]
     public async Task<IActionResult> GetOccupiedSeats([FromQuery] int flightId, [FromQuery] int? scheduleId)
     {
-        try
-        {
-            var query = new GetOccupiedSeatsQuery(flightId, scheduleId);
-            var seats = await _getOccupiedSeatsHandler.HandleAsync(query);
-            return Ok(seats);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError($"Error getting occupied seats: {ex.Message}");
-            return StatusCode(500, new { message = "Internal server error" });
-        }
+        var query = new GetOccupiedSeatsQuery(flightId, scheduleId);
+        var seats = await _getOccupiedSeatsHandler.HandleAsync(query);
+        return Ok(seats);
+    }
+
+    /// <summary>
+    /// Gets all bookings (Admin only).
+    /// </summary>
+    /// <returns>All bookings in the system.</returns>
+    [HttpGet("all")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> GetAllBookings()
+    {
+        var bookings = await _bookingRepository.GetAllAsync();
+        return Ok(bookings);
     }
 }
