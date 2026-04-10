@@ -30,6 +30,7 @@ export class BookingComponent implements OnInit {
   step = signal(1);
   selectedSeats = signal<string[]>([]);
   occupiedSeats = signal<string[]>([]);
+  pendingBookingId = signal<number | null>(null);
 
   economySeats: string[] = [];
   businessSeats: string[] = [];
@@ -196,44 +197,53 @@ export class BookingComponent implements OnInit {
       return;
     }
 
-    this.loading.set(true);
-    
-    // 1. Create the base booking
-    this.bookingService.createBooking({
-      userId: this.authService.userId(),
-      flightId: this.flight()!.id,
-      scheduleId: this.scheduleId() ?? undefined,
-      seatClass: this.seatClass(),
-      baggageWeight: this.baggageWeight(),
-      passengerCount: this.passengers().length,
-      totalAmount: this.getTotalPrice()
-    }).subscribe({
-      next: (booking) => {
-        // Map selected seats sequentially to passengers
-        const mappedPassengers = this.passengers().map((p, i) => ({
-          ...p,
-          seatNumber: this.selectedSeats()[i] || undefined
-        }));
+    const mappedPassengers = this.passengers().map((p, i) => ({
+      ...p,
+      seatNumber: this.selectedSeats()[i] || undefined
+    }));
 
-        // 2. Add the passengers to the newly created booking
-        this.bookingService.addPassengers(booking.id, mappedPassengers).subscribe({
-          next: () => {
-            this.loading.set(false);
-            this.toastService.showSuccess("Passenger details confirmed!");
-            const rolePrefix = this.authService.userRole() === 'Dealer' ? 'dealer' : 'passenger';
-            this.router.navigate([`/${rolePrefix}/payment`, booking.id]);
-          },
-          error: (err) => {
-            this.loading.set(false);
-            console.error("Error adding passengers:", err);
-            const msg = err.error?.message || "Error adding passengers to booking.";
-            this.toastService.showError(msg);
-          }
-        });
+    if (this.pendingBookingId()) {
+      // Re-submit passengers to the existing booking ID
+      this.submitPassengers(this.pendingBookingId()!, mappedPassengers);
+    } else {
+      // 1. Create the base booking
+      this.bookingService.createBooking({
+        userId: this.authService.userId(),
+        flightId: this.flight()!.id,
+        scheduleId: this.scheduleId() ?? undefined,
+        seatClass: this.seatClass(),
+        baggageWeight: this.baggageWeight(),
+        passengerCount: this.passengers().length,
+        totalAmount: this.getTotalPrice()
+      }).subscribe({
+        next: (booking) => {
+          this.pendingBookingId.set(booking.id);
+          // 2. Add the passengers to the newly created booking
+          this.submitPassengers(booking.id, mappedPassengers);
+        },
+        error: (err) => {
+          this.loading.set(false);
+          console.error("Error creating booking:", err);
+          const msg = err.error?.message || "Error creating booking.";
+          this.toastService.showError(msg);
+        }
+      });
+    }
+  }
+
+  private submitPassengers(bookingId: number, mappedPassengers: any[]) {
+    this.bookingService.addPassengers(bookingId, mappedPassengers).subscribe({
+      next: () => {
+        this.loading.set(false);
+        this.toastService.showSuccess("Passenger details confirmed!");
+        const rolePrefix = this.authService.userRole() === 'Dealer' ? 'dealer' : 'passenger';
+        this.router.navigate([`/${rolePrefix}/payment`, bookingId]);
       },
       error: (err) => {
         this.loading.set(false);
-        console.error("Error creating booking:", err);
+        console.error("Error adding passengers:", err);
+        const msg = err.error?.message || "Error adding passengers to booking.";
+        this.toastService.showError(msg);
       }
     });
   }

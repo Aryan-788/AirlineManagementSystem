@@ -34,6 +34,9 @@ public class CancelBookingCommandHandler
             booking.Id,
             booking.UserId,
             booking.FlightId,
+            booking.ScheduleId,
+            booking.SeatClass.ToString(),
+            booking.TotalPassengers > 0 ? booking.TotalPassengers : 1,
             0,
             DateTime.UtcNow));
 

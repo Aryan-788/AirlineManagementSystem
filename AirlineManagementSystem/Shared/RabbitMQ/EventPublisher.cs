@@ -3,6 +3,8 @@ using System.Text.Json;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using Shared.Events;
+using Microsoft.AspNetCore.Http;
+using Serilog.Context;
 
 namespace Shared.RabbitMQ;
 
@@ -21,11 +23,14 @@ public interface IEventConsumer
 public class RabbitMqEventPublisher : IEventPublisher
 {
     private readonly IConnection _connection;
+    private readonly IHttpContextAccessor _httpContextAccessor;
     private const string ExchangeName = "airline-events";
+    private const string CorrelationIdHeader = "X-Correlation-ID";
 
-    public RabbitMqEventPublisher(IConnection connection)
+    public RabbitMqEventPublisher(IConnection connection, IHttpContextAccessor httpContextAccessor)
     {
         _connection = connection;
+        _httpContextAccessor = httpContextAccessor;
     }
 
     public async Task PublishAsync<T>(T integrationEvent)
@@ -48,6 +53,14 @@ public class RabbitMqEventPublisher : IEventPublisher
             Persistent = true
         };
 
+        // Add Correlation ID to headers
+        var correlationId = _httpContextAccessor.HttpContext?.Items["CorrelationId"]?.ToString();
+        if (!string.IsNullOrEmpty(correlationId))
+        {
+            properties.Headers ??= new Dictionary<string, object?>();
+            properties.Headers[CorrelationIdHeader] = correlationId;
+        }
+
         await channel.BasicPublishAsync(
             exchange: ExchangeName,
             routingKey: routingKey,
@@ -63,6 +76,7 @@ public class RabbitMqEventConsumer : IEventConsumer
     private readonly Dictionary<Type, Delegate> _handlers = new();
     private string _serviceName = "DefaultService";
     private const string ExchangeName = "airline-events";
+    private const string CorrelationIdHeader = "X-Correlation-ID";
 
     public RabbitMqEventConsumer(IConnection connection)
     {
@@ -120,8 +134,15 @@ public class RabbitMqEventConsumer : IEventConsumer
 
                     if (integrationEvent != null)
                     {
-                        var handler = _handlers[eventType];
-                        await (Task)handler.DynamicInvoke(integrationEvent)!;
+                        var correlationId = ea.BasicProperties.Headers?.ContainsKey(CorrelationIdHeader) == true
+                            ? Encoding.UTF8.GetString((byte[])ea.BasicProperties.Headers[CorrelationIdHeader]!)
+                            : Guid.NewGuid().ToString();
+
+                        using (LogContext.PushProperty("CorrelationId", correlationId))
+                        {
+                            var handler = _handlers[eventType];
+                            await (Task)handler.DynamicInvoke(integrationEvent)!;
+                        }
                     }
 
                     await channel.BasicAckAsync(ea.DeliveryTag, false);

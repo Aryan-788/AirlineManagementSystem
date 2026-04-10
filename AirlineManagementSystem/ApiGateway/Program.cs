@@ -5,6 +5,18 @@ using Microsoft.IdentityModel.Tokens;
 using MMLib.SwaggerForOcelot;
 using Ocelot.DependencyInjection;
 using Ocelot.Middleware;
+using Polly;
+using Polly.Extensions.Http;
+using Microsoft.Extensions.Http;
+using System;
+using System.Net.Http;
+using System.Text;
+using System.Collections.Generic;
+using System.Linq;
+using Shared.Security;
+using Shared.Middleware;
+using Shared.Extensions;
+using Shared.Handlers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,24 +40,76 @@ builder.Configuration
     .AddJsonFile($"ocelot.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: true)
     .AddJsonFile("ocelot.SwaggerEndPoints.json", optional: false, reloadOnChange: true);
 
-var jwtKey = "your-super-secret-key-that-is-at-least-32-characters-long";
-var jwtIssuer = "AirlineIdentityService";
-var jwtAudience = "AirlineManagementSystem";
+var jwtSettings = builder.Configuration.GetSection("JwtSettings");
+var jwtKey = jwtSettings["Key"] ?? "your-super-secret-key-that-is-at-least-32-characters-long";
+var jwtIssuer = jwtSettings["Issuer"] ?? "AirlineIdentityService";
+var jwtAudiences = jwtSettings.GetSection("Audiences").Get<List<string>>() ?? new List<string> { jwtSettings["Audience"] ?? "AirlineManagementSystem" };
 
 builder.Services.AddOcelot(builder.Configuration);
 builder.Services.AddSwaggerForOcelot(builder.Configuration);
 
+static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy(IServiceProvider provider)
+{
+    return HttpPolicyExtensions
+        .HandleTransientHttpError()
+        .Or<TimeoutException>()
+        .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
+            onRetry: (outcome, timespan, retryAttempt, context) =>
+            {
+                var logger = provider.GetService<ILoggerFactory>()?.CreateLogger("Polly.Retry");
+                logger?.LogWarning("Polly Retry {RetryAttempt} after {TimeSpan}s. Exception: {ExceptionMessage}. StatusCode: {StatusCode}", 
+                    retryAttempt, timespan.Seconds, outcome.Exception?.Message, outcome.Result?.StatusCode);
+            });
+}
+
+static IAsyncPolicy<HttpResponseMessage> GetCircuitBreakerPolicy(IServiceProvider provider)
+{
+    return HttpPolicyExtensions
+        .HandleTransientHttpError()
+        .Or<TimeoutException>()
+        .CircuitBreakerAsync(3, TimeSpan.FromSeconds(30),
+            onBreak: (outcome, timespan) =>
+            {
+                var logger = provider.GetService<ILoggerFactory>()?.CreateLogger("Polly.CircuitBreaker");
+                logger?.LogError("Polly Circuit broken for {TimeSpan}s. Exception: {ExceptionMessage}. StatusCode: {StatusCode}", 
+                    timespan.TotalSeconds, outcome.Exception?.Message, outcome.Result?.StatusCode);
+            },
+            onReset: () =>
+            {
+                var logger = provider.GetService<ILoggerFactory>()?.CreateLogger("Polly.CircuitBreaker");
+                logger?.LogInformation("Polly Circuit reset.");
+            });
+}
+
+static IAsyncPolicy<HttpResponseMessage> GetTimeoutPolicy()
+{
+    return Policy.TimeoutAsync<HttpResponseMessage>(10);
+}
+
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddTransient<CorrelationHttpHandler>();
+
+builder.Services.ConfigureAll<HttpClientFactoryOptions>(options =>
+{
+    options.HttpMessageHandlerBuilderActions.Add(b =>
+    {
+        b.AdditionalHandlers.Add(b.Services.GetRequiredService<CorrelationHttpHandler>());
+        b.AdditionalHandlers.Add(new PolicyHttpMessageHandler(GetRetryPolicy(b.Services)));
+        b.AdditionalHandlers.Add(new PolicyHttpMessageHandler(GetCircuitBreakerPolicy(b.Services)));
+        b.AdditionalHandlers.Add(new PolicyHttpMessageHandler(GetTimeoutPolicy()));
+    });
+});
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(jwtKey)),
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
             ValidateIssuer = true,
             ValidIssuer = jwtIssuer,
             ValidateAudience = true,
-            ValidAudience = jwtAudience,
+            ValidAudiences = jwtAudiences,
             ValidateLifetime = true
         };
     });
@@ -53,6 +117,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddAuthorization();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddTransient<CorrelationHttpHandler>();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
@@ -63,7 +129,11 @@ builder.Services.AddCors(options =>
     });
 });
 
+
 var app = builder.Build();
+
+app.UseCorrelationId();
+app.UseMiddleware<GlobalExceptionMiddleware>();
 
 app.Use(async (context, next) =>
 {

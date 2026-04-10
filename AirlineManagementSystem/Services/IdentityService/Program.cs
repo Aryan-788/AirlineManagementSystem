@@ -11,6 +11,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Shared.Configuration;
+using Shared.Middleware;
+using Shared.Extensions;
+using Shared.Handlers;
 using Shared.Security;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -36,6 +39,9 @@ var rabbitMqSettings = builder.Configuration.GetSection("RabbitMqSettings").Get<
 builder.Services.AddDbContext<IdentityDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddTransient<CorrelationHttpHandler>();
+
 builder.Services.AddSingleton<IConnection>(provider =>
     RabbitMqExtensions.CreateRabbitMqConnectionAsync(
         rabbitMqSettings.HostName,
@@ -52,7 +58,7 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddSingleton<ITokenService>(new JwtTokenService(
     jwtSettings.Key,
     jwtSettings.Issuer,
-    jwtSettings.Audience,
+    jwtSettings.Audiences.Any() ? jwtSettings.Audiences : new List<string> { jwtSettings.Audience },
     jwtSettings.ExpirationMinutes));
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -65,7 +71,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateIssuer = true,
             ValidIssuer = jwtSettings.Issuer,
             ValidateAudience = true,
-            ValidAudience = jwtSettings.Audience,
+            ValidAudiences = jwtSettings.Audiences.Any() ? jwtSettings.Audiences : new List<string> { jwtSettings.Audience },
             ValidateLifetime = true
         };
     });
@@ -114,6 +120,8 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+
+app.UseCorrelationId();
 app.UseMiddleware<GlobalExceptionMiddleware>();
 
 // Middleware moved down

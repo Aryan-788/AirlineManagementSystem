@@ -1,4 +1,8 @@
 using Shared.Middleware;
+using Polly;
+using Polly.Extensions.Http;
+using System;
+using System.Net.Http;
 using Serilog;
 using Serilog.Context;
 using BookingService.CQRS.Handlers;
@@ -13,6 +17,9 @@ using RabbitMQ.Client;
 using Shared.Configuration;
 using Shared.Events;
 using Shared.RabbitMQ;
+using Shared.Middleware;
+using Shared.Extensions;
+using Shared.Handlers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -56,7 +63,52 @@ builder.Services.AddScoped<GetOccupiedSeatsQueryHandler>();
 builder.Services.AddScoped<GetPassengersForBookingQueryHandler>();
 builder.Services.AddScoped<GetBookingByPnrQueryHandler>();
 
-builder.Services.AddHttpClient<BookingServiceImpl>();
+static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy(IServiceProvider provider)
+{
+    return HttpPolicyExtensions
+        .HandleTransientHttpError()
+        .Or<TimeoutException>()
+        .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
+            onRetry: (outcome, timespan, retryAttempt, context) =>
+            {
+                var logger = provider.GetService<ILoggerFactory>()?.CreateLogger("Polly.Retry");
+                logger?.LogWarning("Polly Retry {RetryAttempt} after {TimeSpan}s. Exception: {ExceptionMessage}. StatusCode: {StatusCode}", 
+                    retryAttempt, timespan.Seconds, outcome.Exception?.Message, outcome.Result?.StatusCode);
+            });
+}
+
+static IAsyncPolicy<HttpResponseMessage> GetCircuitBreakerPolicy(IServiceProvider provider)
+{
+    return HttpPolicyExtensions
+        .HandleTransientHttpError()
+        .Or<TimeoutException>()
+        .CircuitBreakerAsync(3, TimeSpan.FromSeconds(30),
+            onBreak: (outcome, timespan) =>
+            {
+                var logger = provider.GetService<ILoggerFactory>()?.CreateLogger("Polly.CircuitBreaker");
+                logger?.LogError("Polly Circuit broken for {TimeSpan}s. Exception: {ExceptionMessage}. StatusCode: {StatusCode}", 
+                    timespan.TotalSeconds, outcome.Exception?.Message, outcome.Result?.StatusCode);
+            },
+            onReset: () =>
+            {
+                var logger = provider.GetService<ILoggerFactory>()?.CreateLogger("Polly.CircuitBreaker");
+                logger?.LogInformation("Polly Circuit reset.");
+            });
+}
+
+static IAsyncPolicy<HttpResponseMessage> GetTimeoutPolicy()
+{
+    return Policy.TimeoutAsync<HttpResponseMessage>(10);
+}
+
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddTransient<CorrelationHttpHandler>();
+
+builder.Services.AddHttpClient<BookingServiceImpl>()
+    .AddHttpMessageHandler<CorrelationHttpHandler>()
+    .AddPolicyHandler((sp, msg) => GetRetryPolicy(sp))
+    .AddPolicyHandler((sp, msg) => GetCircuitBreakerPolicy(sp))
+    .AddPolicyHandler(GetTimeoutPolicy());
 builder.Services.AddSingleton<IConnection>(provider =>
     RabbitMqExtensions.CreateRabbitMqConnectionAsync(
         rabbitMqSettings.HostName,
@@ -79,7 +131,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateIssuer = true,
             ValidIssuer = jwtSettings.Issuer,
             ValidateAudience = true,
-            ValidAudience = jwtSettings.Audience,
+            ValidAudiences = jwtSettings.Audiences.Any() ? jwtSettings.Audiences : new List<string> { jwtSettings.Audience },
             ValidateLifetime = true
         };
     });
@@ -128,6 +180,8 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+
+app.UseCorrelationId();
 app.UseMiddleware<GlobalExceptionMiddleware>();
 
 // Middleware moved down

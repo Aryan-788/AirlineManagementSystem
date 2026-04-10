@@ -39,11 +39,14 @@ public class HandlePaymentFailedCommandHandler
             booking.UpdatedAt = DateTime.UtcNow;
             await _repository.UpdateAsync(booking);
 
-            // Publish BookingCancelledEvent for notification
+            // Publish BookingCancelledEvent for notification and Saga compensation
             await _eventPublisher.PublishAsync(new BookingCancelledEvent(
                 booking.Id,
                 booking.UserId,
                 booking.FlightId,
+                booking.ScheduleId,
+                booking.SeatClass.ToString(),
+                booking.TotalPassengers > 0 ? booking.TotalPassengers : 1, // Default to 1 if not set (legacy or edge case)
                 0,
                 DateTime.UtcNow));
 

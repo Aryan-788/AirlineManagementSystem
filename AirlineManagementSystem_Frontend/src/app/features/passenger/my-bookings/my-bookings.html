@@ -294,7 +294,7 @@
                  </span>
               </td>
               <td class="text-right">
-                <button *ngIf="p.status?.toLowerCase() !== 'cancelled' && selectedBooking()!.status?.toLowerCase() !== 'cancelled'" class="bk-action-danger" (click)="cancelPassenger(p.id)" title="Cancel Passenger">
+                <button *ngIf="p.status?.toLowerCase() !== 'cancelled' && selectedBooking()!.status.toLowerCase() !== 'cancelled'" class="bk-action-danger" (click)="cancelPassenger(p.id)" title="Cancel Passenger">
                   <span class="material-symbols-outlined">person_remove</span>
                 </button>
               </td>

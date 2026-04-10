@@ -1,4 +1,8 @@
 using Shared.Middleware;
+using Polly;
+using Polly.Extensions.Http;
+using System;
+using System.Net.Http;
 using Serilog;
 using Serilog.Context;
 using FlightService.Caching;
@@ -14,7 +18,11 @@ using RabbitMQ.Client;
 using Shared.Configuration;
 using Shared.RabbitMQ;
 using Shared.Security;
+using Shared.Middleware;
+using Shared.Extensions;
+using Shared.Handlers;
 using StackExchange.Redis;
+using Shared.Events;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -53,6 +61,53 @@ builder.Services.AddScoped<IFlightRepository, FlightRepository>();
 builder.Services.AddScoped<IFlightService, FlightService.Services.FlightService>();
 builder.Services.AddScoped<IFlightScheduleService, FlightScheduleService>();
 builder.Services.AddHostedService<ScheduleCompletionWorker>();
+
+static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy(IServiceProvider provider)
+{
+    return HttpPolicyExtensions
+        .HandleTransientHttpError()
+        .Or<TimeoutException>()
+        .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
+            onRetry: (outcome, timespan, retryAttempt, context) =>
+            {
+                var logger = provider.GetService<ILoggerFactory>()?.CreateLogger("Polly.Retry");
+                logger?.LogWarning("Polly Retry {RetryAttempt} after {TimeSpan}s. Exception: {ExceptionMessage}. StatusCode: {StatusCode}", 
+                    retryAttempt, timespan.Seconds, outcome.Exception?.Message, outcome.Result?.StatusCode);
+            });
+}
+
+static IAsyncPolicy<HttpResponseMessage> GetCircuitBreakerPolicy(IServiceProvider provider)
+{
+    return HttpPolicyExtensions
+        .HandleTransientHttpError()
+        .Or<TimeoutException>()
+        .CircuitBreakerAsync(3, TimeSpan.FromSeconds(30),
+            onBreak: (outcome, timespan) =>
+            {
+                var logger = provider.GetService<ILoggerFactory>()?.CreateLogger("Polly.CircuitBreaker");
+                logger?.LogError("Polly Circuit broken for {TimeSpan}s. Exception: {ExceptionMessage}. StatusCode: {StatusCode}", 
+                    timespan.TotalSeconds, outcome.Exception?.Message, outcome.Result?.StatusCode);
+            },
+            onReset: () =>
+            {
+                var logger = provider.GetService<ILoggerFactory>()?.CreateLogger("Polly.CircuitBreaker");
+                logger?.LogInformation("Polly Circuit reset.");
+            });
+}
+
+static IAsyncPolicy<HttpResponseMessage> GetTimeoutPolicy()
+{
+    return Policy.TimeoutAsync<HttpResponseMessage>(10);
+}
+
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddTransient<CorrelationHttpHandler>();
+
+builder.Services.AddHttpClient("Default")
+    .AddHttpMessageHandler<CorrelationHttpHandler>()
+    .AddPolicyHandler((sp, msg) => GetRetryPolicy(sp))
+    .AddPolicyHandler((sp, msg) => GetCircuitBreakerPolicy(sp))
+    .AddPolicyHandler(GetTimeoutPolicy());
 builder.Services.AddSingleton<IConnection>(provider =>
     RabbitMqExtensions.CreateRabbitMqConnectionAsync(
         rabbitMqSettings.HostName,
@@ -63,6 +118,7 @@ builder.Services.AddSingleton<IConnection>(provider =>
 );
 
 builder.Services.AddSingleton<IEventPublisher, RabbitMqEventPublisher>();
+builder.Services.AddSingleton<IEventConsumer, RabbitMqEventConsumer>();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -74,7 +130,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateIssuer = true,
             ValidIssuer = jwtSettings.Issuer,
             ValidateAudience = true,
-            ValidAudience = jwtSettings.Audience,
+            ValidAudiences = jwtSettings.Audiences.Any() ? jwtSettings.Audiences : new List<string> { jwtSettings.Audience },
             ValidateLifetime = true
         };
     });
@@ -123,6 +179,8 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+
+app.UseCorrelationId();
 app.UseMiddleware<GlobalExceptionMiddleware>();
 
 // Middleware moved down
@@ -154,6 +212,32 @@ app.Use(async (context, next) =>
 });
 
 app.UseSerilogRequestLogging();
+
+// Handle Saga compensation (Seat Release)
+var eventConsumer = app.Services.GetRequiredService<IEventConsumer>();
+eventConsumer.Initialize("FlightService");
+var scopeFactory = app.Services.GetRequiredService<IServiceScopeFactory>();
+
+await eventConsumer.SubscribeAsync<BookingCancelledEvent>(async e =>
+{
+    if (e.ScheduleId.HasValue)
+    {
+        using var scope = scopeFactory.CreateScope();
+        var scheduleService = scope.ServiceProvider.GetRequiredService<IFlightScheduleService>();
+        try 
+        {
+            await scheduleService.ReleaseScheduleSeatAsync(e.ScheduleId.Value, e.SeatClass, e.TicketCount);
+            Log.Information($"Successfully released {e.TicketCount} {e.SeatClass} seats for Schedule {e.ScheduleId} via Saga compensation.");
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, $"Failed to release seats for Schedule {e.ScheduleId} during Saga compensation.");
+        }
+    }
+});
+
+await eventConsumer.StartAsync();
+
 app.MapControllers();
 
 app.Run();

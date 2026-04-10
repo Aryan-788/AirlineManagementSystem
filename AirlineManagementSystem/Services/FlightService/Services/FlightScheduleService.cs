@@ -17,6 +17,7 @@ public interface IFlightScheduleService
     Task<IEnumerable<FlightScheduleDto>> SearchSchedulesAsync(string source, string destination, DateTime departureDate);
     Task<IEnumerable<FlightScheduleDto>> GetAllSchedulesAsync();
     Task BookScheduleSeatAsync(int scheduleId, string seatClass, int count);
+    Task ReleaseScheduleSeatAsync(int scheduleId, string seatClass, int count);
     Task MarkExpiredSchedulesCompletedAsync();
 }
 
@@ -206,6 +207,54 @@ public class FlightScheduleService : IFlightScheduleService
             // Always release the lock
             await _cacheService.ReleaseLockAsync(lockKey);
             _logger.LogDebug($"Lock released for {lockKey}");
+        }
+    }
+
+    public async Task ReleaseScheduleSeatAsync(int scheduleId, string seatClass, int count)
+    {
+        var lockKey = $"lock:flight_schedule_{scheduleId}_seat_{seatClass}";
+        var lockTtl = TimeSpan.FromMinutes(2);
+
+        var lockAcquired = await _cacheService.AcquireLockAsync(lockKey, lockTtl);
+        if (!lockAcquired)
+        {
+            _logger.LogWarning($"Seat lock not acquired for {lockKey} during release. Retrying...");
+            // Simple retry logic for release
+            await Task.Delay(500);
+            lockAcquired = await _cacheService.AcquireLockAsync(lockKey, lockTtl);
+            if (!lockAcquired) throw new InvalidOperationException("Could not acquire lock to release seats.");
+        }
+
+        try
+        {
+            var schedule = await _repository.GetScheduleByIdAsync(scheduleId);
+            if (schedule == null)
+                throw new KeyNotFoundException($"Schedule {scheduleId} not found");
+
+            if (seatClass == "Economy")
+            {
+                schedule.EconomySeats += count;
+            }
+            else if (seatClass == "Business")
+            {
+                schedule.BusinessSeats += count;
+            }
+            else if (seatClass == "First")
+            {
+                schedule.FirstSeats += count;
+            }
+            else
+            {
+                throw new InvalidOperationException($"Invalid seat class during release: {seatClass}");
+            }
+
+            schedule.AvailableSeats += count;
+            await _repository.UpdateScheduleAsync(schedule);
+            _logger.LogInformation($"Seats released: Schedule {scheduleId}, Class: {seatClass}, Count: {count}");
+        }
+        finally
+        {
+            await _cacheService.ReleaseLockAsync(lockKey);
         }
     }
 

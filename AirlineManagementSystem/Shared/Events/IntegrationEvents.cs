@@ -38,6 +38,9 @@ public record BookingCancelledEvent(
     int BookingId,
     int UserId,
     int FlightId,
+    int? ScheduleId,
+    string SeatClass,
+    int TicketCount,
     decimal RefundAmount,
     DateTime CancelledAt) : IntegrationEvent;
 
