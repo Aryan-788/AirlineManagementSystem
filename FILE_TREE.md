@@ -9,7 +9,6 @@ AirlineManagementSystem/
 ├── QUICKSTART.md
 ├── API_DOCUMENTATION.md
 ├── BUILD_INSTRUCTIONS.md
-└── COMPLETION_SUMMARY.md
 
 ├── Shared/
 │   ├── Shared.csproj
@@ -67,16 +66,26 @@ AirlineManagementSystem/
 │   │   ├── Program.cs
 │   │   ├── appsettings.json
 │   │   ├── Dockerfile
+│   │   ├── CQRS/
+│   │   │   ├── Commands/
+│   │   │   ├── Handlers/
+│   │   │   └── Queries/
 │   │   ├── Models/
-│   │   │   └── Booking.cs
+│   │   │   ├── Booking.cs
+│   │   │   ├── Passenger.cs
+│   │   │   ├── Refund.cs
+│   │   │   └── RefundPolicy.cs
 │   │   ├── DTOs/
-│   │   │   └── BookingDtos.cs
+│   │   │   ├── BookingDtos.cs
+│   │   │   └── RefundDtos.cs
 │   │   ├── Data/
 │   │   │   └── BookingDbContext.cs
 │   │   ├── Repositories/
 │   │   │   └── BookingRepository.cs
 │   │   ├── Services/
-│   │   │   └── BookingService.cs
+│   │   │   ├── BookingService.cs
+│   │   │   ├── PassengerService.cs
+│   │   │   └── RefundService.cs
 │   │   └── Controllers/
 │   │       └── BookingsController.cs
 │
@@ -216,14 +225,14 @@ Total Files: 105+
 
 By Category:
 ├── Configuration Files: 15 (appsettings.json, Dockerfile, etc.)
-├── Source Code Files (.cs): 75+
+├── Source Code Files (.cs): 95+
 ├── Documentation: 6
 ├── Docker: 12 (Dockerfiles + docker-compose.yml)
-└── Other: 5 (.gitignore, etc.)
+├── Other: 5 (.gitignore, etc.)
 
 By Type:
 ├── .csproj files: 12
-├── .cs files: 75+
+├── .cs files: 95+
 ├── .json files: 15
 ├── .md files: 6
 ├── Dockerfiles: 12

@@ -25,6 +25,9 @@ The system is designed with 4 user roles:
 10. **Admin Service** - Dashboard & reporting
 11. **API Gateway** - Ocelot-based request routing
 
+> [!NOTE]
+> The **Booking Service** has been evolved to use the **CQRS (Command-Query Responsibility Segregation)** pattern for better scalability and separation of read/write concerns.
+
 ## 🔧 Tech Stack
 
 - **Runtime**: .NET 10
@@ -59,6 +62,8 @@ The system is designed with 4 user roles:
 ✅ Create bookings with seat class selection  
 ✅ Automatic PNR generation  
 ✅ Booking history and cancellation  
+✅ Multi-passenger booking support  
+✅ Automated Refund Calculation (Time-based logic)  
 ✅ Passenger information management  
 
 ### Payment Processing
@@ -209,13 +214,17 @@ Payment Service + Reward Service + Notification Service
 
 PaymentSuccess Event
     ↓
-Booking Service (confirm booking) + Notification Service
+Booking Service (confirm booking) + Reward Service (credit points) + Notification Service
 
-FlightDelayed Event
+BookingCancelled Event
     ↓
-Notification Service (alert passengers)
+Flight Service (release seats) + Refund Service (calculate refund) + Notification Service
 
-CheckInCompleted Event
+RefundProcessedEvent
+    ↓
+Admin Dashboard (audit reports) + Notification Service (email user)
+
+CheckInCompletedEvent
     ↓
 Baggage Service + Notification Service
 

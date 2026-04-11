@@ -268,6 +268,89 @@ Authorization: Bearer {token}
 
 ---
 
+### Passenger Management
+
+### Add Passengers
+**Endpoint**: `POST /bookings/{bookingId}/passengers`  
+**Auth**: Required (Passenger, Dealer)
+
+**Request**:
+```json
+[
+  {
+    "name": "Jane Doe",
+    "age": 28,
+    "gender": "Female",
+    "seatNumber": "15C",
+    "passportNumber": "P1234567"
+  }
+]
+```
+
+### Get Booking Passengers
+**Endpoint**: `GET /bookings/{bookingId}/passengers`  
+**Auth**: Required (Passenger, Dealer)
+
+---
+
+### Advanced Cancellation & Refunds
+
+### Cancel Single Passenger
+**Endpoint**: `POST /bookings/passengers/{passengerId}/cancel`  
+**Auth**: Required (Passenger, Dealer)
+
+**Request**:
+```json
+{
+  "reason": "Health issues",
+  "cancelConfirmation": true
+}
+```
+
+### Cancel Multiple Passengers
+**Endpoint**: `POST /bookings/{bookingId}/passengers/cancel`  
+**Auth**: Required (Passenger, Dealer)
+
+**Request**:
+```json
+{
+  "passengerIds": [1, 2],
+  "reason": "Plan change"
+}
+```
+
+### Get Refund Reports (Admin)
+**Endpoint**: `GET /bookings/refunds/all`  
+**Auth**: Required (Admin Only)
+
+**Response**:
+```json
+[
+  {
+    "bookingId": 1,
+    "passengerName": "John Doe",
+    "refundAmount": 450.00,
+    "refundPercentage": 90.0,
+    "status": "RefundPending",
+    "cancellationTime": "2024-01-15T10:30:00Z"
+  }
+]
+```
+
+---
+
+## Cancellation & Refund Policy
+
+Refunds are calculated based on the time remaining before the flight departure:
+
+| Time Before Departure | Refund Percentage |
+|-----------------------|-------------------|
+| More than 48 hours    | 90% Refund        |
+| 24 to 48 hours        | 50% Refund        |
+| Less than 24 hours    | 0% Refund         |
+
+---
+
 ## Payment Service
 
 ### Process Payment
@@ -682,25 +765,39 @@ Triggered when a booking is created
 }
 ```
 
-### PaymentSuccessEvent
-Triggered when payment is successful
+### BookingCancelledEvent
+Triggered when a full booking or passenger is cancelled
 ```json
 {
-  "paymentId": 1,
   "bookingId": 1,
-  "amount": 500,
+  "userId": 1,
+  "flightId": 1,
+  "refundAmount": 450.00,
+  "cancelledAt": "2024-01-15T10:30:00Z"
+}
+```
+
+### RefundProcessedEvent
+Triggered when a refund is calculated and recorded
+```json
+{
+  "bookingId": 1,
+  "passengerId": 1,
+  "userId": 1,
+  "refundAmount": 450.00,
+  "refundPercentage": 90.0,
   "processedAt": "2024-01-15T10:30:00Z"
 }
 ```
 
-### FlightDelayedEvent
-Triggered when a flight is delayed
+### RewardEarnedEvent
+Triggered when a booking is successfully paid
 ```json
 {
-  "flightId": 1,
-  "flightNumber": "AA001",
-  "newDepartureTime": "2024-12-25T11:00:00Z",
-  "notifiedAt": "2024-01-15T10:30:00Z"
+  "userId": 1,
+  "points": 100,
+  "bookingId": 1,
+  "earnedAt": "2024-01-15T10:30:00Z"
 }
 ```
 
