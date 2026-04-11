@@ -32,8 +32,10 @@
 
   <Project Path="ApiGateway/ApiGateway.csproj" />
 
-  <Project Path="Services/FlightService.Tests/FlightService.Tests.csproj" />
-  <Project Path="Services/BookingService.Tests/BookingService.Tests.csproj" />
-  <Project Path="Services/PaymentService.Tests/PaymentService.Tests.csproj" />
+  <Project Path="Tests/FlightService.Tests/FlightService.Tests.csproj" />
+  <Project Path="Tests/BookingService.Tests/BookingService.Tests.csproj" />
+  <Project Path="Tests/PaymentService.Tests/PaymentService.Tests.csproj" />
+
+  <Project Path="Tests/Airline.SeleniumTests/Airline.SeleniumTests.csproj" />
 
 </Solution>
