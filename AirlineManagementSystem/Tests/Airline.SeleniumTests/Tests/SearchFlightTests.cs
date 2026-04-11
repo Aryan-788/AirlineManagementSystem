@@ -65,8 +65,10 @@ public class SearchFlightTests
     [Test]
     public void Search_No_Results_Scenario()
     {
+        var date = DateTime.Now.AddDays(7).ToString("yyyy-MM-dd");
         _searchPage.EnterSource("NonExistentCity")
                    .EnterDestination("AnotherCity")
+                   .SelectDepartureDate(date)
                    .ClickFindFlights();
         
         Assert.That(_searchPage.IsNoResultsMessageVisible(), Is.True, "No results message should be visible for invalid cities.");

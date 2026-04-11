@@ -16,12 +16,14 @@ public class BookingsController : ControllerBase
     private readonly CancelBookingCommandHandler _cancelBookingHandler;
     private readonly CreatePassengerCommandHandler _createPassengerHandler;
     private readonly CancelPassengerCommandHandler _cancelPassengerHandler;
+    private readonly CancelMultiplePassengersCommandHandler _cancelMultiplePassengersHandler;
     private readonly GetBookingByIdQueryHandler _getBookingHandler;
     private readonly GetBookingHistoryQueryHandler _getBookingHistoryHandler;
     private readonly GetBookingsByScheduleQueryHandler _getBookingsByScheduleHandler;
     private readonly GetOccupiedSeatsQueryHandler _getOccupiedSeatsHandler;
     private readonly GetPassengersForBookingQueryHandler _getPassengersHandler;
     private readonly GetBookingByPnrQueryHandler _getBookingByPnrHandler;
+    private readonly GetRefundsQueryHandler _getRefundsHandler;
     private readonly BookingService.Repositories.IBookingRepository _bookingRepository;
     private readonly ILogger<BookingsController> _logger;
 
@@ -30,12 +32,14 @@ public class BookingsController : ControllerBase
         CancelBookingCommandHandler cancelBookingHandler,
         CreatePassengerCommandHandler createPassengerHandler,
         CancelPassengerCommandHandler cancelPassengerHandler,
+        CancelMultiplePassengersCommandHandler cancelMultiplePassengersHandler,
         GetBookingByIdQueryHandler getBookingHandler,
         GetBookingHistoryQueryHandler getBookingHistoryHandler,
         GetBookingsByScheduleQueryHandler getBookingsByScheduleHandler,
         GetOccupiedSeatsQueryHandler getOccupiedSeatsHandler,
         GetPassengersForBookingQueryHandler getPassengersHandler,
         GetBookingByPnrQueryHandler getBookingByPnrHandler,
+        GetRefundsQueryHandler getRefundsHandler,
         BookingService.Repositories.IBookingRepository bookingRepository,
         ILogger<BookingsController> logger)
     {
@@ -43,12 +47,14 @@ public class BookingsController : ControllerBase
         _cancelBookingHandler = cancelBookingHandler;
         _createPassengerHandler = createPassengerHandler;
         _cancelPassengerHandler = cancelPassengerHandler;
+        _cancelMultiplePassengersHandler = cancelMultiplePassengersHandler;
         _getBookingHandler = getBookingHandler;
         _getBookingHistoryHandler = getBookingHistoryHandler;
         _getBookingsByScheduleHandler = getBookingsByScheduleHandler;
         _getOccupiedSeatsHandler = getOccupiedSeatsHandler;
         _getPassengersHandler = getPassengersHandler;
         _getBookingByPnrHandler = getBookingByPnrHandler;
+        _getRefundsHandler = getRefundsHandler;
         _bookingRepository = bookingRepository;
         _logger = logger;
     }
@@ -142,6 +148,30 @@ public class BookingsController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Cancels multiple passengers from a booking.
+    /// </summary>
+    /// <param name="bookingId">The ID of the booking.</param>
+    /// <param name="dto">The cancellation details and passenger IDs.</param>
+    /// <returns>A success message.</returns>
+    [HttpPost("{bookingId}/passengers/cancel")]
+    [Authorize(Roles = "Passenger,Dealer")]
+    public async Task<IActionResult> CancelMultiplePassengers(int bookingId, [FromBody] CancelMultiplePassengersDto dto)
+    {
+        if (!ModelState.IsValid)
+            throw new BadRequestException("Invalid state");
+
+        try
+        {
+            var command = new CancelMultiplePassengersCommand(bookingId, dto);
+            await _cancelMultiplePassengersHandler.HandleAsync(command);
+            return Ok(new { message = "Passengers cancelled successfully" });
+        }
+        catch (InvalidOperationException ex)
+        {
+            throw new BadRequestException(ex.Message);
+        }
+    }
 
     /// <summary>
     /// Gets a booking by its ID.
@@ -260,5 +290,18 @@ public class BookingsController : ControllerBase
     {
         var bookings = await _bookingRepository.GetAllAsync();
         return Ok(bookings);
+    }
+
+    /// <summary>
+    /// Gets all cancelled passengers and their refund details. (Admin only)
+    /// </summary>
+    /// <returns>A list of detailed refunds and cancellations.</returns>
+    [HttpGet("refunds/all")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> GetAllRefunds()
+    {
+        var query = new GetRefundsQuery();
+        var results = await _getRefundsHandler.HandleAsync(query);
+        return Ok(results);
     }
 }

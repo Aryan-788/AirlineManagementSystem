@@ -147,7 +147,14 @@ public class SearchFlightPage : BasePage
     /// <summary>Returns true if the "no results" message is shown.</summary>
     public bool IsNoResultsMessageVisible()
     {
-        return IsDisplayed(_noResultsMsg);
+        try
+        {
+            return WaitForVisible(_noResultsMsg, TimeSpan.FromSeconds(5)).Displayed;
+        }
+        catch (WebDriverTimeoutException)
+        {
+            return false;
+        }
     }
 
     // ─── Private Helpers ───────────────────────────────────────────────────────

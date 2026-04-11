@@ -16,6 +16,7 @@ public interface IPaymentService
     Task<PaymentDto> VerifySignatureAsync(VerifySignatureDto dto);
     Task<PaymentDto> GetPaymentAsync(int id);
     Task<PaymentDto> RefundAsync(int paymentId);
+    Task<PaymentDto> ProcessRefundAsync(RefundRequestDto dto);
     Task<IEnumerable<PaymentDto>> GetAllPaymentsAsync();
 }
 
@@ -243,6 +244,25 @@ public class PaymentServiceImpl : IPaymentService
         await _repository.UpdateAsync(payment);
 
         return MapToDto(payment);
+    }
+
+    public async Task<PaymentDto> ProcessRefundAsync(RefundRequestDto dto)
+    {
+        // Add a new mirrored refund transaction to keep the history clean
+        var refundTransaction = new PaymentService.Models.Payment
+        {
+            BookingId = dto.BookingId,
+            Amount = -dto.Amount, // Negative amount indicates a refund
+            PaymentMethod = "Refund",
+            TransactionId = Guid.NewGuid().ToString(),
+            Status = PaymentStatus.Refunded,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        await _repository.AddAsync(refundTransaction);
+        _logger.LogInformation($"Refund transaction recorded for BookingId={dto.BookingId}, Amount={dto.Amount}");
+
+        return MapToDto(refundTransaction);
     }
 
     private PaymentDto MapToDto(PaymentService.Models.Payment payment)

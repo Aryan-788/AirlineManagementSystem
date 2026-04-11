@@ -51,6 +51,11 @@ export const routes: Routes = [
     loadComponent: () => import('./features/admin/schedules/schedules').then(m => m.AdminSchedulesComponent),
     canActivate: [authGuard, roleGuard(['Admin'])]
   },
+  {
+    path: 'admin/refunds',
+    loadComponent: () => import('./features/admin/refunds/refunds').then(m => m.AdminRefundsComponent),
+    canActivate: [authGuard, roleGuard(['Admin'])]
+  },
   // Dealer Routes
   {
     path: 'dealer/dashboard',

@@ -232,6 +232,13 @@ await eventConsumer.SubscribeAsync<UserRegistrationRequestedEvent>(async e =>
     await notificationService.HandleUserRegistrationRequestedAsync(e);
 });
 
+await eventConsumer.SubscribeAsync<RefundProcessedEvent>(async e =>
+{
+    using var handlerScope = scopeFactory.CreateScope();
+    var notificationService = handlerScope.ServiceProvider.GetRequiredService<INotificationService>();
+    await notificationService.HandleRefundProcessedAsync(e);
+});
+
 await eventConsumer.StartAsync();
 
 app.UseSwagger();

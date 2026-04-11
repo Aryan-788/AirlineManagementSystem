@@ -5,9 +5,9 @@ namespace Airline.SeleniumTests.Pages;
 
 public class DashboardPage : BasePage
 {
-    private readonly By _dashboardTitle = By.CssSelector("h1.pg-title, h1.dash-title, h1.hero-title");
-    private readonly By _sideNavItems = By.CssSelector(".nav-item-link, .sidebar-link");
-    private readonly By _logoutButton = By.CssSelector("button.logout-btn, .nav-action[title='Logout'], .logout-link");
+    private readonly By _dashboardTitle = By.CssSelector("h1.pg-title, h1.dash-title, h1.hero-title, h1.admin-title, h1.d-title");
+    private readonly By _sideNavItems = By.CssSelector("a.nav-item");
+    private readonly By _logoutButton = By.CssSelector(".nav-item.logout");
 
     public DashboardPage(IWebDriver driver) : base(driver) { }
 

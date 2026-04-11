@@ -38,6 +38,7 @@ builder.Services.AddDbContext<RewardDbContext>(options =>
 
 builder.Services.AddScoped<IRewardRepository, RewardRepository>();
 builder.Services.AddScoped<IRewardService, RewardServiceImpl>();
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddSingleton<IConnection>(provider =>
     RabbitMqExtensions.CreateRabbitMqConnectionAsync(
         rabbitMqSettings.HostName,

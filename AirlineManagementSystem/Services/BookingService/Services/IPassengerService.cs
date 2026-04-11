@@ -71,7 +71,7 @@ public class PassengerService : IPassengerService
             Gender = dto.Gender,
             AadharCardNo = dto.AadharCardNo,
             SeatNumber = dto.SeatNumber,
-            Status = PassengerStatus.Confirmed
+            Status = Shared.Models.PassengerStatus.Confirmed
         };
 
         await _passengerRepository.AddPassengerAsync(passenger);
@@ -96,12 +96,12 @@ public class PassengerService : IPassengerService
             throw new InvalidOperationException($"Passenger with ID {passengerId} not found");
         }
 
-        if (passenger.Status == PassengerStatus.Cancelled)
+        if (passenger.Status == Shared.Models.PassengerStatus.Cancelled)
         {
             throw new InvalidOperationException("Passenger is already cancelled");
         }
 
-        passenger.Status = PassengerStatus.Cancelled;
+        passenger.Status = Shared.Models.PassengerStatus.Cancelled;
         passenger.CancelledAt = DateTime.UtcNow;
         passenger.CancellationReason = dto.CancellationReason;
 

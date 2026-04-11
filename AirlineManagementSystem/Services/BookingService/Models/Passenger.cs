@@ -18,10 +18,3 @@ public class Passenger : BaseEntity
     public Booking? Booking { get; set; }
 }
 
-public enum PassengerStatus
-{
-    Confirmed,
-    CheckedIn,
-    Boarded,
-    Cancelled
-}

@@ -1,4 +1,4 @@
-﻿import { AirlineTimePipe } from '../../../shared/pipes/airline-time.pipe';
+import { AirlineTimePipe } from '../../../shared/pipes/airline-time.pipe';
 import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
@@ -33,6 +33,7 @@ export class MyBookingsComponent implements OnInit {
   passengersOfBooking = signal<any[]>([]);
   baggagesOfBooking = signal<Baggage[]>([]);
   modalLoading = signal(false);
+  selectedPassengerIds = signal<number[]>([]);
 
   sideNavItems = computed(() => {
     if (this.authService.userRole() === 'Dealer') {
@@ -120,6 +121,8 @@ export class MyBookingsComponent implements OnInit {
       case 'confirmed': return 'st-confirmed';
       case 'pending': return 'st-pending';
       case 'cancelled': return 'st-cancelled';
+      case 'refunded': return 'st-refunded';
+      case 'partiallycancelled': return 'st-partiallycancelled';
       default: return 'st-default';
     }
   }
@@ -139,6 +142,7 @@ export class MyBookingsComponent implements OnInit {
     this.modalLoading.set(true);
     this.passengersOfBooking.set([]);
     this.selectedFlight.set(null);
+    this.selectedPassengerIds.set([]);
     
     // Fetch passengers
     this.bookingService.getPassengers(booking.id).subscribe({
@@ -172,16 +176,75 @@ export class MyBookingsComponent implements OnInit {
     const reason = prompt('Please enter cancellation reason:');
     if (reason === null) return;
     
+    const booking = this.selectedBooking();
     this.bookingService.cancelPassenger(passengerId, reason || 'User requested cancel').subscribe({
       next: () => {
+        // Optimistically update local state
         this.passengersOfBooking.update(paxList => paxList.map(p => 
           p.id === passengerId ? { ...p, status: 'Cancelled', cancellationReason: reason || 'User requested cancel' } : p
         ));
+        // Re-fetch to get true server state (including booking status updates)
+        if (booking) {
+          this.bookingService.getPassengers(booking.id).subscribe({
+            next: (refreshed) => {
+              this.passengersOfBooking.set(refreshed);
+              // Update booking status from server
+              this.bookingService.getUserBookings(this.authService.userId()!).subscribe({
+                next: (bks) => this.bookings.set(bks)
+              });
+            }
+          });
+        }
+        alert('Cancellation successful! Your refund is initiated and will be deposited within 5-6 working days.');
       },
-      error: (err) => {
-        alert(err.error?.message || 'Failed to cancel passenger');
+      error: (err: any) => {
+        alert(err.error?.message || 'Failed to cancel passenger. Please try again.');
       }
     });
+  }
+
+  togglePassengerSelection(id: number) {
+    const current = this.selectedPassengerIds();
+    if (current.includes(id)) {
+        this.selectedPassengerIds.set(current.filter(pId => pId !== id));
+    } else {
+        this.selectedPassengerIds.set([...current, id]);
+    }
+  }
+
+  cancelMultipleSelectedPassengers() {
+      const selectedIds = this.selectedPassengerIds();
+      if (selectedIds.length === 0) return;
+      
+      const booking = this.selectedBooking();
+      if (!booking) return;
+
+      if (!confirm(`Are you sure you want to cancel the selected ${selectedIds.length} passenger(s)?`)) return;
+      const reason = prompt('Please enter cancellation reason:');
+      if (reason === null) return;
+      
+      this.bookingService.cancelMultiplePassengers(booking.id, selectedIds, reason || 'User requested cancel').subscribe({
+          next: () => {
+              this.passengersOfBooking.update(paxList => paxList.map(p => 
+                  selectedIds.includes(p.id) ? { ...p, status: 'Cancelled', cancellationReason: reason || 'User requested cancel' } : p
+              ));
+              this.selectedPassengerIds.set([]); // clear selection
+              
+              const allCancelled = this.passengersOfBooking().every(p => p.status === 'Cancelled' || p.status === 'Refunded');
+              const partial = this.passengersOfBooking().some(p => p.status === 'Cancelled' || p.status === 'Refunded') && !allCancelled;
+              
+              if(allCancelled) {
+                  this.selectedBooking.set( { ...booking, status: 'Cancelled' });
+                  this.bookings.update(bs => bs.map(b => b.id === booking.id ? { ...b, status: 'Cancelled' } : b));
+              } else if(partial) {
+                  this.selectedBooking.set( { ...booking, status: 'PartiallyCancelled' });
+                  this.bookings.update(bs => bs.map(b => b.id === booking.id ? { ...b, status: 'PartiallyCancelled' } : b));
+              }
+          },
+          error: (err: any) => {
+              alert(err.error?.message || 'Failed to cancel passengers');
+          }
+      });
   }
 
   getDuration(departure: string, arrival: string): string {

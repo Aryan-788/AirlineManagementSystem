@@ -57,7 +57,7 @@ public class CreatePassengerCommandHandler
             Gender = dto.Gender,
             AadharCardNo = dto.AadharCardNo,
             SeatNumber = dto.SeatNumber,
-            Status = PassengerStatus.Confirmed
+            Status = Shared.Models.PassengerStatus.Confirmed
         };
 
         await _passengerRepository.AddPassengerAsync(passenger);

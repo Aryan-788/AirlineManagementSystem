@@ -9,6 +9,7 @@ using Shared.RabbitMQ;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Xunit;
+using BookingService.Services;
 
 namespace BookingService.Tests;
 
@@ -16,6 +17,7 @@ public class CancelBookingCommandHandlerTests
 {
     private readonly Mock<IBookingRepository> _mockRepository;
     private readonly Mock<IEventPublisher> _mockEventPublisher;
+    private readonly Mock<IRefundService> _mockRefundService;
     private readonly Mock<ILogger<CancelBookingCommandHandler>> _mockLogger;
     private readonly CancelBookingCommandHandler _handler;
 
@@ -23,11 +25,17 @@ public class CancelBookingCommandHandlerTests
     {
         _mockRepository = new Mock<IBookingRepository>();
         _mockEventPublisher = new Mock<IEventPublisher>();
+        _mockRefundService = new Mock<IRefundService>();
         _mockLogger = new Mock<ILogger<CancelBookingCommandHandler>>();
+
+        // Default refund service behavior
+        _mockRefundService.Setup(r => r.ProcessRefundAsync(It.IsAny<Booking>(), It.IsAny<int?>(), It.IsAny<int>()))
+            .Returns(Task.CompletedTask);
 
         _handler = new CancelBookingCommandHandler(
             _mockRepository.Object,
             _mockEventPublisher.Object,
+            _mockRefundService.Object,
             _mockLogger.Object);
     }
 

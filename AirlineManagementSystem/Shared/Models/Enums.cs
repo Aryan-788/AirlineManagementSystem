@@ -20,7 +20,10 @@ public enum BookingStatus
     Confirmed,
     CheckedIn,
     Completed,
-    Cancelled
+    Cancelled,
+    RefundPending,
+    Refunded,
+    PartiallyCancelled
 }
 
 public enum PaymentStatus
@@ -50,6 +53,15 @@ public enum BaggageStatus
     InTransit,
     Delivered,
     Lost
+}
+
+public enum PassengerStatus
+{
+    Confirmed,
+    CheckedIn,
+    Boarded,
+    Cancelled,
+    Refunded
 }
 
 public enum SeatClass

@@ -1,0 +1,81 @@
+<app-top-navbar></app-top-navbar>
+<app-side-navbar subtitle="Admin Console" [navItems]="sideNavItems"></app-side-navbar>
+
+<main class="admin-main">
+  <header class="admin-header">
+    <div>
+      <h1 class="font-headline admin-title">Refunds & Cancellations</h1>
+      <p class="admin-sub">Monitor all passenger cancellations and processed automated refunds seamlessly.</p>
+    </div>
+  </header>
+
+  <!-- Refunds Table -->
+  <section class="admin-table-section">
+    <div class="admin-table-header">
+      <div>
+        <h4 class="font-headline chart-title">Transaction Log</h4>
+        <p class="chart-sub">Recent automated refund disbursements</p>
+      </div>
+    </div>
+    
+    <div class="table-wrap">
+      <div class="bk-empty" *ngIf="loading()">
+        <span class="material-symbols-outlined bk-empty-icon spin">refresh</span>
+        <p>Loading refunds...</p>
+      </div>
+
+      <table *ngIf="!loading()">
+        <thead>
+          <tr>
+            <th>PNR / Booking</th>
+            <th>Passenger</th>
+            <th>Type</th>
+            <th>Amount Processed</th>
+            <th>Reason</th>
+            <th>Status</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let r of refunds()">
+            <td>
+              <div class="flight-cell">
+                <span class="fc-id" style="font-weight:700; color:#0f172a;">{{ r.pnr }}</span>
+                <span class="route-cell" style="display:block; font-size:0.75rem;">ID: {{ r.bookingId }}</span>
+              </div>
+            </td>
+            <td>
+              <div style="font-weight:600; color:#1e293b;">{{ r.passengerName }}</div>
+              <div style="font-size:0.75rem; color:#64748b;">{{ r.passengerAadhar }}</div>
+            </td>
+            <td>
+                <span class="seats-badge" *ngIf="r.passengerId">Partial (Pax)</span>
+                <span class="seats-badge" *ngIf="!r.passengerId" style="background:#e0f2fe; color:#0369a1;">Full Trip</span>
+            </td>
+            <td>
+              <div style="font-weight:700; color:#16a34a;" *ngIf="r.refundAmount > 0">
+                &#8377;{{ r.refundAmount | number:'1.2-2' }}
+                <div style="font-size:0.75rem; color:#64748b;">{{ r.refundPercentage }}% Applied</div>
+              </div>
+              <div style="font-weight:600; color:#dc2626;" *ngIf="r.refundAmount === 0">
+                No Refund
+                <div style="font-size:0.75rem; color:#64748b;">0% (policy)</div>
+              </div>
+            </td>
+            <td style="max-width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" [title]="r.cancellationReason">
+              {{ r.cancellationReason }}
+            </td>
+            <td>
+              <span class="status-tag" [ngClass]="getStatusClass(r.refundStatus)">
+                {{ r.refundStatus === 'RefundPending' ? 'Refund Pending' : r.refundStatus }}
+              </span>
+              <div *ngIf="r.refundAmount > 0 && r.refundStatus === 'RefundPending'" style="font-size:0.72rem; color:#92400e; margin-top:4px;">Deposits in 5-6 working days</div>
+            </td>
+            <td class="text-muted">{{ r.cancellationTime | airlineTime:'medium' }}</td>
+          </tr>
+          <tr *ngIf="refunds().length === 0"><td colspan="7" class="empty">No cancellations or refunds found</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>

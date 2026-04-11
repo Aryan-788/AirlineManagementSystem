@@ -23,6 +23,7 @@ public interface INotificationService
     Task HandleCheckInCompletedAsync(CheckInCompletedEvent @event);
     Task HandlePasswordResetRequestedAsync(PasswordResetRequestedEvent @event);
     Task HandleUserRegistrationRequestedAsync(UserRegistrationRequestedEvent @event);
+    Task HandleRefundProcessedAsync(RefundProcessedEvent @event);
     Task MarkAsReadAsync(int id);
     Task MarkAllAsReadAsync(int userId);
 }
@@ -252,6 +253,37 @@ public class NotificationServiceImpl : INotificationService
             Subject = "Verify Your Account",
             Message = $"Welcome to SkyLedger Airlines! To complete your registration, please enter the following OTP: <br/><br/><strong style='font-size:24px;color:#1d4ed8;'>{@event.VerificationToken}</strong><br/><br/>This code will expire in 15 minutes. If you did not create this account, you can safely ignore this email.",
             NotificationType = "UserVerification",
+            IsSent = false,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        await SaveAndSendNotificationAsync(notification);
+    }
+
+    public async Task HandleRefundProcessedAsync(RefundProcessedEvent @event)
+    {
+        string message;
+        if (@event.RefundAmount > 0)
+        {
+            message = $"Your booking cancellation has been processed. <br/><br/>" +
+                      $"<strong>Refund Amount: ₹{@event.RefundAmount:F2}</strong><br/>" +
+                      $"Refund Percentage Applied: {@event.RefundPercentage}%<br/><br/>" +
+                      $"Your refund is initiated and will be deposited within <strong>5 - 6 working days</strong> to your original payment method.";
+        }
+        else
+        {
+            message = $"Your booking/passenger cancellation has been processed. <br/><br/>" +
+                      $"Unfortunately, based on our cancellation policy, <strong>no refund is applicable</strong> as the departure was within the non-refundable window.<br/><br/>" +
+                      $"We hope to serve you again on SkyLedger Airlines.";
+        }
+
+        var notification = new Notification
+        {
+            UserId = @event.UserId,
+            Email = "",
+            Subject = @event.RefundAmount > 0 ? "Refund Initiated – 5 to 6 Working Days" : "Booking Cancelled – No Refund Applicable",
+            Message = message,
+            NotificationType = "RefundProcessed",
             IsSent = false,
             CreatedAt = DateTime.UtcNow
         };

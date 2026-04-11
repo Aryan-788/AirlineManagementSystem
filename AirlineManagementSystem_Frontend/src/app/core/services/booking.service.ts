@@ -50,9 +50,17 @@ export class BookingService {
     return this.http.post(`${this.apiUrl}/passengers/${passengerId}/cancel`, { cancellationReason: reason });
   }
 
+  cancelMultiplePassengers(bookingId: number, passengerIds: number[], reason: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/${bookingId}/passengers/cancel`, { passengerIds, cancellationReason: reason });
+  }
+
   getOccupiedSeats(flightId: number, scheduleId?: number): Observable<string[]> {
     let url = `${this.apiUrl}/occupied-seats?flightId=${flightId}`;
     if (scheduleId) url += `&scheduleId=${scheduleId}`;
     return this.http.get<string[]>(url);
+  }
+
+  getAllRefunds(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/refunds/all`);
   }
 }

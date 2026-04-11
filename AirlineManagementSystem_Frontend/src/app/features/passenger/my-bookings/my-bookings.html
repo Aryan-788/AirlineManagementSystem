@@ -260,7 +260,12 @@
           </div>
 
       <div class="modal-passenger-list">
-        <h3 class="font-headline pax-list-title">Passenger Manifest</h3>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h3 class="font-headline pax-list-title">Passenger Manifest</h3>
+            <button *ngIf="selectedPassengerIds().length > 0" class="bk-action-danger" style="margin-bottom: 8px;" (click)="cancelMultipleSelectedPassengers()">
+                Cancel Selected ({{ selectedPassengerIds().length }})
+            </button>
+        </div>
         
         <div class="modal-loader" *ngIf="modalLoading()">
           <span class="material-symbols-outlined spin">flight_takeoff</span>
@@ -270,6 +275,7 @@
         <table class="modal-table" *ngIf="!modalLoading() && passengersOfBooking().length > 0">
           <thead>
             <tr>
+              <th width="40"></th>
               <th>Passenger Name</th>
               <th>Age / Gender</th>
               <th>Seat Number</th>
@@ -278,7 +284,13 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let p of passengersOfBooking()">
+            <tr *ngFor="let p of passengersOfBooking()" [class.selected]="selectedPassengerIds().includes(p.id)">
+              <td>
+                <input type="checkbox" 
+                       *ngIf="p.status?.toLowerCase() !== 'cancelled' && p.status?.toLowerCase() !== 'refunded' && selectedBooking()!.status.toLowerCase() !== 'cancelled' && selectedBooking()!.status.toLowerCase() !== 'refunded'"
+                       [checked]="selectedPassengerIds().includes(p.id)" 
+                       (change)="togglePassengerSelection(p.id)">
+              </td>
               <td>
                 <p class="pax-name">{{ p.name }}</p>
                 <p class="pax-aadhar">Aadhar: {{ p.aadharCardNo }}</p>
@@ -294,7 +306,7 @@
                  </span>
               </td>
               <td class="text-right">
-                <button *ngIf="p.status?.toLowerCase() !== 'cancelled' && selectedBooking()!.status.toLowerCase() !== 'cancelled'" class="bk-action-danger" (click)="cancelPassenger(p.id)" title="Cancel Passenger">
+                <button *ngIf="p.status?.toLowerCase() !== 'cancelled' && p.status?.toLowerCase() !== 'refunded' && selectedBooking()!.status.toLowerCase() !== 'cancelled' && selectedBooking()!.status.toLowerCase() !== 'refunded'" class="bk-action-danger" (click)="cancelPassenger(p.id)" title="Cancel Passenger">
                   <span class="material-symbols-outlined">person_remove</span>
                 </button>
               </td>

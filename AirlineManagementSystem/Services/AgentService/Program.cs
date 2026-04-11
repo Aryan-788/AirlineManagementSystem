@@ -38,6 +38,7 @@ builder.Services.AddDbContext<AgentDbContext>(options =>
 builder.Services.AddScoped<IDealerRepository, DealerRepository>();
 builder.Services.AddScoped<IDealerBookingRepository, DealerBookingRepository>();
 builder.Services.AddScoped<IAgentService, AgentServiceImpl>();
+builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddSingleton<IConnection>(provider =>
     RabbitMqExtensions.CreateRabbitMqConnectionAsync(

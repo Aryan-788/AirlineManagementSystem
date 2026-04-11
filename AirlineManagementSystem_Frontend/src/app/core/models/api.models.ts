@@ -328,3 +328,18 @@ export interface UpdateProfileRequest {
   name: string;
   email: string;
 }
+
+export interface RefundDetails {
+  id: number;
+  bookingId: number;
+  pnr: string;
+  passengerId?: number;
+  passengerName: string;
+  passengerAadhar: string;
+  cancellationReason: string;
+  refundAmount: number;
+  refundPercentage: number;
+  refundStatus: string;
+  cancellationTime: string;
+  departureTime: string;
+}

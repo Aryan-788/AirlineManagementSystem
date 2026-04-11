@@ -109,20 +109,14 @@ public class LoginPage : BasePage
     {
         try
         {
-            WaitHelper.WaitForUrlContains(Driver, "/dashboard", timeout ?? TimeSpan.FromSeconds(15));
+            var successPaths = new[] { "/dashboard", "/passenger", "/admin", "/search", "/ground-staff", "/dealer" };
+            WaitHelper.WaitForAnyUrlContains(Driver, successPaths, timeout ?? TimeSpan.FromSeconds(15));
             return true;
         }
         catch (WebDriverTimeoutException)
         {
-            // The dashboard redirect didn't happen in time; check individual role paths
+            return false;
         }
-
-        // Check for other post-login paths used by different roles
-        var url = Driver.Url;
-        return url.Contains("/dashboard", StringComparison.OrdinalIgnoreCase)
-            || url.Contains("/passenger", StringComparison.OrdinalIgnoreCase)
-            || url.Contains("/admin", StringComparison.OrdinalIgnoreCase)
-            || url.Contains("/search", StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>Returns true if an error message element is visible.</summary>

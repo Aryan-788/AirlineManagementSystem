@@ -38,6 +38,7 @@ builder.Services.AddDbContext<CheckInDbContext>(options =>
 builder.Services.AddScoped<ICheckInRepository, CheckInRepository>();
 builder.Services.AddScoped<ICheckInService, CheckInServiceImpl>();
 builder.Services.AddHttpClient<CheckInServiceImpl>();
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddSingleton<IConnection>(provider =>
     RabbitMqExtensions.CreateRabbitMqConnectionAsync(
         rabbitMqSettings.HostName,

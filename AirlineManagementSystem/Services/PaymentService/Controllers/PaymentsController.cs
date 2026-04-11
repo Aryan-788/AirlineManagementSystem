@@ -117,6 +117,26 @@ public class PaymentsController : ControllerBase
     }
 
     /// <summary>
+    /// Process Automatic Refund from API
+    /// </summary>
+    /// <param name="dto"></param>
+    /// <returns>returns payment details</returns>
+    [HttpPost("refund")]
+    [Authorize(Roles = "Passenger,Dealer,Admin")]
+    public async Task<IActionResult> ProcessRefund([FromBody] RefundRequestDto dto)
+    {
+        try
+        {
+            var result = await _paymentService.ProcessRefundAsync(dto);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    /// <summary>
     /// Get All Payments (Admin only)
     /// </summary>
     /// <returns>All payments in the system</returns>

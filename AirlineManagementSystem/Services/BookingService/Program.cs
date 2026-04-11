@@ -48,10 +48,12 @@ builder.Services.AddScoped<IBookingRepository, BookingRepository>();
 builder.Services.AddScoped<IPassengerRepository, PassengerRepository>();
 builder.Services.AddScoped<IBookingService, BookingServiceImpl>();
 builder.Services.AddScoped<IPassengerService, PassengerService>();
+builder.Services.AddScoped<IRefundService, RefundService>();
 
 // Register CQRS Handlers
 builder.Services.AddScoped<CreateBookingCommandHandler>();
 builder.Services.AddScoped<CancelBookingCommandHandler>();
+builder.Services.AddScoped<CancelMultiplePassengersCommandHandler>();
 builder.Services.AddScoped<CreatePassengerCommandHandler>();
 builder.Services.AddScoped<CancelPassengerCommandHandler>();
 builder.Services.AddScoped<HandlePaymentSuccessCommandHandler>();
@@ -62,6 +64,7 @@ builder.Services.AddScoped<GetBookingsByScheduleQueryHandler>();
 builder.Services.AddScoped<GetOccupiedSeatsQueryHandler>();
 builder.Services.AddScoped<GetPassengersForBookingQueryHandler>();
 builder.Services.AddScoped<GetBookingByPnrQueryHandler>();
+builder.Services.AddScoped<GetRefundsQueryHandler>();
 
 static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy(IServiceProvider provider)
 {

@@ -37,6 +37,7 @@ builder.Services.AddDbContext<BaggageDbContext>(options =>
 
 builder.Services.AddScoped<IBaggageRepository, BaggageRepository>();
 builder.Services.AddScoped<IBaggageService, BaggageServiceImpl>();
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddSingleton<IConnection>(provider =>
     RabbitMqExtensions.CreateRabbitMqConnectionAsync(
         rabbitMqSettings.HostName,

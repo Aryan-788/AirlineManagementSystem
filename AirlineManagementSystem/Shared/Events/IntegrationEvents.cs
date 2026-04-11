@@ -74,3 +74,11 @@ public record UserRegistrationRequestedEvent(
     string Email,
     string VerificationToken,
     DateTime RequestedAt) : IntegrationEvent;
+
+public record RefundProcessedEvent(
+    int BookingId,
+    int? PassengerId,
+    int UserId,
+    decimal RefundAmount,
+    decimal RefundPercentage,
+    DateTime ProcessedAt) : IntegrationEvent;

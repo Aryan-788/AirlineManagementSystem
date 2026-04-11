@@ -33,6 +33,7 @@ export class AdminDashboardComponent implements OnInit {
     { icon: 'dashboard', label: 'Dashboard', route: '/admin/dashboard' },
     { icon: 'flight_takeoff', label: 'Fleet Control', route: '/admin/flights' },
     { icon: 'calendar_month', label: 'Scheduling', route: '/admin/schedules' },
+    { icon: 'currency_exchange', label: 'Refunds & Cancellations', route: '/admin/refunds' },
     { icon: 'confirmation_number', label: 'Bookings', route: '/admin/dashboard' },
     { icon: 'forklift', label: 'Ground Ops', route: '/admin/dashboard' },
     { icon: 'group', label: 'User Mgmt', route: '/admin/dashboard' },

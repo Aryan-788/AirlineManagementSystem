@@ -71,11 +71,18 @@ public static class WaitHelper
         })!;
     }
 
-    /// <summary>Waits until the page URL contains the specified fragment.</summary>
+    /// <summary>Waits until the page URL contains any of the specified fragments.</summary>
     public static void WaitForUrlContains(IWebDriver driver, string fragment, TimeSpan? timeout = null)
     {
         var wait = CreateWait(driver, timeout);
         wait.Until(d => d.Url.Contains(fragment, StringComparison.OrdinalIgnoreCase));
+    }
+
+    /// <summary>Waits until the page URL contains any of the specified fragments.</summary>
+    public static void WaitForAnyUrlContains(IWebDriver driver, string[] fragments, TimeSpan? timeout = null)
+    {
+        var wait = CreateWait(driver, timeout);
+        wait.Until(d => fragments.Any(f => d.Url.Contains(f, StringComparison.OrdinalIgnoreCase)));
     }
 
     /// <summary>Waits until the page title contains the specified text.</summary>

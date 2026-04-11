@@ -99,6 +99,8 @@ services:
       JwtSettings__Issuer: "AirlineIdentityService"
       JwtSettings__Audience: "AirlineManagementSystem"
       RabbitMqSettings__HostName: "rabbitmq"
+      ServiceUrls__FlightService: "http://flight-service:5002"
+      ServiceUrls__PaymentService: "http://payment-service:5004"
     depends_on:
       - sqlserver
       - rabbitmq
