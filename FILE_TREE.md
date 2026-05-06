@@ -230,6 +230,8 @@ By Category:
 ├── Docker: 12 (Dockerfiles + docker-compose.yml)
 ├── Other: 5 (.gitignore, etc.)
 
+
+
 By Type:
 ├── .csproj files: 12
 ├── .cs files: 95+
